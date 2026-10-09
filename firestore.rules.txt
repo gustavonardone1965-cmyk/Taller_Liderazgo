@@ -1,0 +1,82 @@
+rules_version = '2';
+
+// Reglas para el Taller de Liderazgo Grido.
+// ANTES DE PUBLICAR: reemplazá Gus_12345678# (abajo) por tu clave de facilitador.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function own(id) { return signedIn() && id == request.auth.uid; }
+    function isFacil() {
+      return signedIn() && exists(/databases/$(database)/documents/facilitadores/$(request.auth.uid));
+    }
+    function shortText(field, max) {
+      return !(field in request.resource.data)
+        || (request.resource.data[field] is string && request.resource.data[field].size() <= max);
+    }
+
+    // Acceso de facilitador: solo se crea con la clave correcta. Nadie puede leer la clave.
+    match /facilitadores/{uid} {
+      allow get: if own(uid);
+      allow create: if own(uid) && request.resource.data.clave == 'CAMBIAR_ESTA_CLAVE';
+      allow list, update, delete: if false;
+    }
+
+    // Fase en curso: la leen todos, la cambia solo el facilitador.
+    match /estado/{doc} {
+      allow read: if true;
+      allow write: if isFacil();
+    }
+
+    // Causas del Ishikawa y contramedidas del A3: cada uno crea las suyas.
+    match /causas/{id} {
+      allow read: if true;
+      allow create: if signedIn() && request.resource.data.pid == request.auth.uid && shortText('texto', 140);
+      allow delete: if signedIn() && (resource.data.pid == request.auth.uid || isFacil());
+      allow update: if false;
+    }
+    match /contramedidas/{id} {
+      allow read: if true;
+      allow create: if signedIn() && request.resource.data.pid == request.auth.uid
+        && shortText('accion', 160) && shortText('kpi', 80) && shortText('concepto', 80);
+      allow delete: if signedIn() && (resource.data.pid == request.auth.uid || isFacil());
+      allow update: if false;
+    }
+
+    // Votos de causas: el id del voto empieza con el id del participante.
+    match /votos/{id} {
+      allow read: if true;
+      allow create, update: if signedIn() && request.resource.data.pid == request.auth.uid
+        && id.matches(request.auth.uid + '_.*');
+      allow delete: if signedIn() && (resource.data.pid == request.auth.uid || isFacil());
+    }
+
+    // Un documento por participante (su id es el del participante).
+    match /respuestas_caso/{uid} {
+      allow read: if true;
+      allow create, update: if own(uid) && shortText('otro', 145);
+      allow delete: if own(uid) || isFacil();
+    }
+    match /porques/{uid} {
+      allow read: if true;
+      allow create, update: if own(uid) && shortText('raiz', 200) && shortText('causa', 200)
+        && shortText('p1', 160) && shortText('p2', 160) && shortText('p3', 160) && shortText('p4', 160) && shortText('p5', 160);
+      allow delete: if own(uid) || isFacil();
+    }
+    match /diag/{uid} {
+      allow read: if true;
+      allow create, update: if own(uid);
+      allow delete: if own(uid) || isFacil();
+    }
+    match /cierre/{uid} {
+      allow read: if true;
+      allow create, update: if own(uid) && shortText('compromiso', 200);
+      allow delete: if own(uid) || isFacil();
+    }
+
+    // Todo lo demás, cerrado.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
