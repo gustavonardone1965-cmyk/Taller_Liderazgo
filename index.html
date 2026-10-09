@@ -1,0 +1,593 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}</style>
+<title>Taller de Liderazgo Grido</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap">
+<style>
+/* Layout: herramienta de taller — barra de identidad + fases numeradas (secuencia real de 90') + tablero vivo por fase */
+:root{
+  --bg:#F3F5F8; --surface:#FFFFFF; --surface2:#EBEFF4; --line:#D5DCE5;
+  --fg:#1B2636; --muted:#56637A; --navy:#1E2A3A; --onnavy:#F4F1EA;
+  --accent:#B4501A; --accent-soft:#F6E3D6; --blue:#2C5D8F; --blue-soft:#DDE8F4;
+  --ok:#2E7D4F; --warn:#9A6A00;
+  --f-display:'Source Serif 4', Georgia, serif; --f-body:'IBM Plex Sans', 'Segoe UI', Arial, sans-serif;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121821; --surface:#1A2230; --surface2:#222C3C; --line:#33405A;
+  --fg:#E7ECF3; --muted:#A3AFC2; --navy:#0C1119; --onnavy:#EDE9E1;
+  --accent:#F08A4B; --accent-soft:#3A2618; --blue:#7FB0E3; --blue-soft:#1C2C40;
+  --ok:#6BC28E; --warn:#E3B54F; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121821; --surface:#1A2230; --surface2:#222C3C; --line:#33405A;
+  --fg:#E7ECF3; --muted:#A3AFC2; --navy:#0C1119; --onnavy:#EDE9E1;
+  --accent:#F08A4B; --accent-soft:#3A2618; --blue:#7FB0E3; --blue-soft:#1C2C40;
+  --ok:#6BC28E; --warn:#E3B54F; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1240px;margin:0 auto;padding-inline:20px;padding-block:20px 60px;display:flex;flex-direction:column;gap:18px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:clamp(24px,3.2vw,34px)} h2{font-size:24px} h3{font-size:17px;font-family:var(--f-body);font-weight:700}
+p{margin:0}
+.muted{color:var(--muted)}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+header.top{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;justify-content:space-between}
+.idbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px}
+.idbar label{font-size:13px;color:var(--muted);font-weight:600}
+input,select,textarea,button{font:inherit;color:inherit}
+input[type=text],select,textarea{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 10px;min-width:0}
+textarea{width:100%;resize:vertical;min-height:60px}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+button{cursor:pointer;border-radius:8px;border:1px solid var(--line);background:var(--surface);padding:7px 14px;font-weight:600}
+button.primary{background:var(--accent);border-color:var(--accent);color:#FFF}
+button.ghost{background:transparent}
+button:disabled{opacity:.5;cursor:not-allowed}
+.status{font-size:13px;padding:6px 10px;border-radius:8px;background:var(--surface2);color:var(--muted)}
+.status.live{background:var(--blue-soft);color:var(--blue)}
+.status.off{background:var(--accent-soft);color:var(--accent)}
+
+nav.phases{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
+nav.phases button{display:flex;flex-direction:column;align-items:flex-start;gap:0;min-width:128px;text-align:left;background:var(--surface);font-weight:500}
+nav.phases button .n{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+nav.phases button .t{font-weight:700;font-size:14px}
+nav.phases button[aria-selected=true]{border-color:var(--navy);box-shadow:inset 0 -3px 0 var(--accent)}
+nav.phases button.now .n::after{content:" · en curso";color:var(--accent);font-weight:700}
+
+.facil{background:var(--navy);color:var(--onnavy);border-radius:var(--r);padding:12px 14px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.facil select,.facil input{background:rgba(255,255,255,.08);color:var(--onnavy);border-color:rgba(255,255,255,.25)}
+.facil button{background:transparent;color:var(--onnavy);border-color:rgba(255,255,255,.35)}
+
+.panel{display:flex;flex-direction:column;gap:16px}
+.consigna{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:16px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px}
+.consigna .clave{border-left:3px solid var(--blue);padding-left:14px;display:flex;flex-direction:column;gap:6px}
+.consigna .clave .eyebrow{color:var(--blue)}
+@media (max-width:760px){.consigna{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:900px){.grid3{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:640px){.grid2,.grid3{grid-template-columns:1fr}}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.row > *{min-width:0}
+.grow{flex:1 1 220px}
+
+.bar{display:grid;grid-template-columns:minmax(0,1fr) 44px;gap:8px;align-items:center;font-size:14px}
+.bar .track{grid-column:1/-1;height:10px;background:var(--surface2);border-radius:5px;overflow:hidden}
+.bar .fill{height:100%;background:var(--blue);border-radius:5px;transition:width .3s}
+.bar .v{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+.bar.hl .fill{background:var(--accent)}
+
+/* Ishikawa */
+.fish{display:flex;flex-direction:column;gap:10px}
+.spine{display:flex;align-items:center;gap:10px}
+.spine .lineh{flex:1;height:4px;background:var(--navy);border-radius:2px;position:relative}
+.spine .lineh::after{content:"";position:absolute;right:-2px;top:-7px;border-left:14px solid var(--navy);border-top:9px solid transparent;border-bottom:9px solid transparent}
+.effect{background:var(--navy);color:var(--onnavy);border-radius:var(--r);padding:10px 14px;max-width:300px;font-weight:600}
+.effect small{display:block;color:var(--accent);font-weight:700;letter-spacing:.06em;font-size:11px}
+:root[data-theme="dark"] .effect small{color:#F08A4B}
+.bone{background:var(--surface);border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:var(--r);padding:12px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.bone.b{border-top-color:var(--blue)}
+.bone .q{font-size:13px;color:var(--muted)}
+.chip{font-size:12px;font-weight:700;color:var(--accent)}
+.bone.b .chip{color:var(--blue)}
+.note{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:14px;display:flex;flex-direction:column;gap:4px;overflow-wrap:anywhere}
+.note .meta{font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:8px}
+.note .meta button{padding:0 6px;font-size:12px;border:none;background:none;color:var(--muted)}
+.empty{font-size:13px;color:var(--muted);font-style:italic}
+
+.vote{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.vote.top{border-color:var(--accent);background:var(--accent-soft)}
+.vote .count{font-variant-numeric:tabular-nums;font-weight:700;font-size:18px;min-width:28px;text-align:center}
+.vote button.on{background:var(--accent);color:#FFF;border-color:var(--accent)}
+.tag{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--surface2);color:var(--muted);white-space:nowrap}
+
+.whys{display:flex;flex-direction:column;gap:8px}
+.whys label{font-size:13px;font-weight:600;color:var(--muted)}
+.whys input{width:100%}
+.salacard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:6px;font-size:14px;min-width:0;overflow-wrap:anywhere}
+.salacard ol{margin:0;padding-left:20px}
+.salacard .raiz{background:var(--navy);color:var(--onnavy);border-radius:8px;padding:8px 10px}
+
+.scale{display:flex;gap:4px;flex-wrap:wrap}
+.scale button{width:38px;padding:6px 0;font-variant-numeric:tabular-nums}
+.scale button.on{background:var(--blue);color:#FFF;border-color:var(--blue)}
+.dim{display:flex;flex-direction:column;gap:6px;padding-block:8px;border-bottom:1px solid var(--line)}
+
+.a3cols{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+@media (max-width:1000px){.a3cols{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.a3cols{grid-template-columns:1fr}}
+.a3col{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.a3col h3{font-size:15px}
+.a3head{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (max-width:760px){.a3head{grid-template-columns:1fr}}
+.a3head .card{gap:6px}
+
+.guide table{width:100%;border-collapse:collapse;font-size:14px}
+.guide th,.guide td{border-bottom:1px solid var(--line);padding:8px;text-align:left;vertical-align:top}
+.guide th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.tablewrap{overflow-x:auto}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--navy);color:var(--onnavy);padding:10px 16px;border-radius:8px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.show{opacity:1}
+.confirm{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<style>
+.savebox{display:flex;align-items:center;gap:8px;margin-left:auto}
+.savebox .when{font-size:13px;color:var(--muted)}
+.countnote{font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div style="display:flex;flex-direction:column;gap:4px">
+      <span class="eyebrow">Curso de liderazgo · Red Grido</span>
+      <h1>Taller: el lanzamiento que no llega a tiempo</h1>
+      <p class="muted">Ishikawa + votación + 5 Porqués + A3 con programa 5R</p>
+    </div>
+    <div class="row">
+      <span id="conn" class="status">Conectando el tablero compartido…</span>
+    </div>
+  </header>
+
+  <div class="idbar" aria-label="Tu identificación">
+    <span class="muted" style="font-size:13px">Tus aportes son anónimos. Solo vos podés borrar los tuyos.</span>
+    <span class="savebox"><span class="when" id="savedAt">Sin cambios grabados</span><button class="primary" id="saveAll" type="button">Grabar cambios</button></span>
+  </div>
+
+  <div id="facil" class="facil" hidden>
+    <strong>Facilitador</strong>
+    <label for="fFase" style="font-size:13px">Fase en curso</label>
+    <select id="fFase"></select>
+    <button id="fSet" type="button">Llevar a todos a esta fase</button>
+    <span style="flex:1"></span>
+    <span id="fResetZone" class="confirm"><button id="fReset" type="button">Reiniciar todo de cero…</button></span>
+  </div>
+
+  <div id="facilLogin" class="facil" hidden>
+    <strong>Acceso de facilitador</strong>
+    <label for="fClave" style="font-size:13px">Clave</label>
+    <input id="fClave" type="password" maxlength="60" autocomplete="off" style="width:180px">
+    <button id="fEntrar" type="button">Entrar</button>
+    <span style="font-size:13px">Es la clave que pusiste en las reglas de Firestore.</span>
+  </div>
+
+  <nav class="phases" id="phases" role="tablist" aria-label="Fases del taller"></nav>
+  <main id="main"></main>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<!-- ===== CONFIGURACIÓN DE FIREBASE =====
+     Pegá acá los datos de tu app web de Firebase
+     (Consola de Firebase > Configuración del proyecto > Tus apps > SDK setup and configuration > Config). -->
+<script>
+window.FIREBASE_CONFIG = {
+  apiKey: "AIzaSyBlCkzdBtLZIr1VMEgmnheR2kNlt1Sw8Bs",
+  authDomain: "capacitacionliderazgo.firebaseapp.com",
+  projectId: "capacitacionliderazgo",
+  storageBucket: "capacitacionliderazgo.firebasestorage.app",
+  messagingSenderId: "506607226388",
+  appId: "1:506607226388:web:69124864873c3c68242101",
+  measurementId: "G-MCKT3F2K9F"
+};
+</script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+(() => {
+const PHASES = [
+ {id:'caso', n:'1', t:'El caso'},
+ {id:'ishikawa', n:'2', t:'Ishikawa colectivo'},
+ {id:'votacion', n:'3', t:'Votar causas'},
+ {id:'porques', n:'4', t:'5 Porqués'},
+ {id:'diagnostico', n:'5', t:'Termómetro de liderazgo'},
+ {id:'a3', n:'6', t:'A3 y contramedidas 5R'},
+ {id:'cierre', n:'7', t:'Alerta temprana'},
+];
+const CATS = [
+ {id:'personas', t:'Personas', c:'Prototipicidad', q:'¿El equipo de proyecto lo ve como “uno de nosotros”?', side:'a'},
+ {id:'metodo', t:'Método', c:'Justicia procedimental', q:'¿Cómo define plazos y prioridades? ¿Da voz y explica?', side:'a'},
+ {id:'gestion', t:'Gestión y medición', c:'Poder “sobre” el grupo', q:'¿Cómo controla el avance? ¿Premia, expone o sanciona?', side:'a'},
+ {id:'entorno', t:'Entorno', c:'Relaciones intergrupales', q:'¿Qué áreas se ven como “ellos”? ¿Planta, abastecimiento, marketing, la dirección?', side:'b'},
+ {id:'recursos', t:'Recursos', c:'Promoción del grupo', q:'Ante atrasos o faltantes, ¿defiende al equipo o lo culpa?', side:'b'},
+ {id:'comunicacion', t:'Comunicación', c:'Emprendimiento e impresariado', q:'¿Hay un relato común del lanzamiento y rituales que unan?', side:'b'},
+];
+const CONCEPTS = ['Prototipicidad (ser uno de nosotros)','Promoción (hacerlo por nosotros)','Emprendimiento (construir el nosotros)','Impresariado (hacer que el nosotros importe)','Poder “sobre” vs “a través de”','Justicia procedimental','Relaciones intergrupales (nosotros/ellos)','Liderazgo co-construido con el equipo','El líder como mejor ejemplo del grupo','Un nosotros más amplio: todas las áreas','Sesgo de atribución al líder'];
+const STEPS5R = [
+ {id:'readying', t:'Readying', d:'Preparar: legitimar el proceso y el rol del líder'},
+ {id:'reflecting', t:'Reflecting', d:'Reflexionar: ¿quiénes somos y qué valoramos?'},
+ {id:'representing', t:'Representing', d:'Representar: metas y conductas del nosotros'},
+ {id:'realizing', t:'Realizing', d:'Concretar: rituales, estructuras y logros visibles'},
+ {id:'reviewing', t:'Reviewing', d:'Revisar: medir y ajustar'},
+];
+const POWER = ['Recompensa','Coercitivo','Legítimo','Experto','Referente'];
+const DIMS = [
+ {id:'d1', t:'Prototipicidad', q:'¿El líder representa lo que somos como equipo?'},
+ {id:'d2', t:'Promoción', q:'¿Defiende los intereses del equipo?'},
+ {id:'d3', t:'Emprendimiento', q:'¿Nos hace sentir parte de un mismo grupo?'},
+ {id:'d4', t:'Impresariado', q:'¿Crea espacios y actividades que nos unen?'},
+];
+
+const SIGNALS = ['Se dice “él” o “ellos” en vez de “nosotros”','Los atrasos se conocen tarde: nadie avisa','Se cumple lo mínimo, sin iniciativa','El equipo consulta a un referente informal','Las áreas se culpan entre sí','Piden salir del proyecto o faltan a las reuniones'];
+const MAX_VOTES = 3;
+const RESP = [
+ {id:'r1', t:'El líder quedó afuera del equipo: hay que sumarlo al “nosotros” antes de exigir la fecha'},
+ {id:'r2', t:'La fecha es del líder y no del equipo: hay que construir el compromiso con todas las áreas'},
+ {id:'r3', t:'Se controla con miedo: hay que pasar de exponer los atrasos a resolverlos juntos'},
+ {id:'r4', t:'Cada área juega para sí: hay que fijar una meta común en lugar de metas individuales'},
+ {id:'r5', t:'Los problemas llegan tarde: hay que crear espacios seguros para avisar a tiempo'},
+];
+const OTRO_MAX = 145;
+
+const S = {db:null, canEdit:false, pid:null, fase:'caso', view:'caso',
+  resp:[], causas:[], votos:[], porques:[], diag:[], contra:[], cierre:[]};
+const $ = (s, el=document) => el.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const store = {get(k){try{return localStorage.getItem(k)}catch(e){return null}}, set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+function toast(msg){const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove('show'),2200);}
+function me(){return {}}
+function needDb(){ if(!S.db){toast('El tablero compartido no está disponible en esta vista.'); return false} return true }
+function markSaved(){ const d=new Date(); $('#savedAt').textContent='Cambios grabados a las '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
+async function safe(p, ok){ try{ await p; if(ok) toast(ok); markSaved(); return true }catch(e){ toast(e && e.code==='quota_exceeded' ? 'El tablero llegó a su límite de aportes. Pedile al facilitador que lo vacíe.' : 'No se pudo grabar. Probá de nuevo.'); return false } }
+function canon(id){return String(id).replace(/[^A-Za-z0-9_\-.~:@+]/g,'_').slice(0,120)}
+const cuenta = () => true;
+let localPid = store.get('tl_pid'); if(!localPid){ localPid = 'p'+Math.random().toString(36).slice(2,10); store.set('tl_pid', localPid) }
+S.pid = localPid;
+
+
+function renderNav(){
+  const nav = $('#phases'); nav.innerHTML='';
+  PHASES.forEach(ph => {
+    const b=document.createElement('button'); b.type='button'; b.setAttribute('role','tab');
+    b.setAttribute('aria-selected', S.view===ph.id ? 'true':'false');
+    if(S.fase===ph.id) b.classList.add('now');
+    b.innerHTML = `<span class="n">${ph.id==='guia'?'Para quien conduce':'Fase '+ph.n}</span><span class="t">${esc(ph.t)}</span>`;
+    b.onclick = () => { S.view=ph.id; renderNav(); renderPanel(); };
+    nav.appendChild(b);
+  });
+}
+function consigna(eyebrow, title, steps, keyTitle, keyText){
+  return `<section class="consigna"><div style="display:flex;flex-direction:column;gap:8px"><span class="eyebrow">${eyebrow}</span><h2>${title}</h2><ol style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px">${steps.map(s=>`<li>${s}</li>`).join('')}</ol></div><aside class="clave"><span class="eyebrow">Concepto clave</span><strong>${keyTitle}</strong><p class="muted" style="font-size:14px">${keyText}</p></aside></section>`;
+}
+function bars(items){
+  const max = Math.max(1, ...items.map(i=>i.v));
+  return items.map(i => `<div class="bar ${i.v===max && i.v>0 ? 'hl':''}"><span>${esc(i.t)}</span><span class="v">${i.v}</span><div class="track"><div class="fill" style="width:${Math.round(100*i.v/max)}%"></div></div></div>`).join('');
+}
+function rankedCausas(){
+  const n = {}; S.votos.filter(cuenta).forEach(v=>{ n[v.causa]=(n[v.causa]||0)+1 });
+  return S.causas.map(c=>({...c, v:n[c.id]||0})).sort((a,b)=>b.v-a.v || (a.ts||0)-(b.ts||0));
+}
+function respuestaCard(){
+  const mine = S.resp.find(r=>r.id===S.pid) || {};
+  const valid = S.resp.filter(cuenta);
+  const counts = RESP.map(o=>({t:o.t, v:valid.filter(r=>r.op===o.id).length})).concat([{t:'Otra', v:valid.filter(r=>r.op==='otra').length}]);
+  const otras = valid.filter(r=>r.op==='otra' && r.otro);
+  return `<div class="grid2">
+   <div class="card"><h3>Tu respuesta</h3>
+    <p class="muted" style="font-size:14px">¿Por qué un equipo competente no llega a la fecha, y qué tiene que cambiar para lograr la meta? Elegí una opción.</p>
+    <div role="radiogroup" aria-label="Respuesta al caso" style="display:flex;flex-direction:column;gap:6px">
+     ${RESP.map(o=>`<label class="note" style="flex-direction:row;gap:10px;align-items:flex-start;cursor:pointer"><input type="radio" name="rOp" value="${o.id}" ${mine.op===o.id?'checked':''}> <span>${esc(o.t)}</span></label>`).join('')}
+     <label class="note" style="flex-direction:row;gap:10px;align-items:flex-start;cursor:pointer"><input type="radio" name="rOp" value="otra" ${mine.op==='otra'?'checked':''}> <span>Otra</span></label>
+     <textarea id="rOtro" maxlength="${OTRO_MAX}" placeholder="Escribí tu respuesta (hasta ${OTRO_MAX} caracteres)" aria-label="Otra respuesta">${esc(mine.otro||'')}</textarea>
+     <span class="countnote" id="rCount">${(mine.otro||'').length}/${OTRO_MAX}</span>
+    </div>
+    <button class="primary" id="rSave" type="button">Grabar mi respuesta</button>
+   </div>
+   <div class="card"><h3>Respuestas del grupo (${valid.length})</h3>
+    ${bars(counts)}
+    <h3>Otras respuestas (${otras.length})</h3>
+    ${otras.map(r=>`<div class="note"><span>${esc(r.otro)}</span></div>`).join('')||'<p class="empty">Todavía no hay otras respuestas.</p>'}
+   </div></div>`;
+}
+async function saveResp(){
+  const sel=document.querySelector('input[name="rOp"]:checked'); const otro=($('#rOtro')?.value||'').trim().slice(0,OTRO_MAX);
+  if(!sel && !otro) return null;
+  const op = sel ? sel.value : 'otra';
+  if(op==='otra' && !otro){ toast('Escribí tu respuesta en “Otra”.'); return false }
+  return safe(S.db.doc('respuestas_caso/'+S.pid).set({op, otro: op==='otra'?otro:'', ...me()}));
+}
+function note(c){ return `<div class="note"><span>${esc(c.texto)}</span>${c.pid===S.pid?`<span class="meta"><span>Tuyo</span><button type="button" data-del="causas/${esc(c.id)}">Borrar</button></span>`:''}</div>` }
+
+const PANELS = {
+caso(){
+  return consigna('Fase 1','El caso: “El lanzamiento que no llega a tiempo”',[
+    'Leé el caso en silencio.',
+    'En plenario: ¿qué está en juego para el negocio si se pierde la fecha? ¿Y para el equipo?',
+    'Respondé la pregunta del caso: elegí una de las 5 opciones o escribí la tuya en “Otra”.'],
+    'Del individuo a la relación',
+    'Ante un proyecto atrasado, la mirada tradicional busca un culpable: el líder o un área. La mirada de identidad mira la relación: un equipo hace suya una fecha cuando la siente como un compromiso del “nosotros”.')+
+  `<div class="grid2">
+    <div class="card"><span class="eyebrow">Desafío tipo Grido / Helacor · caso didáctico, ficticio</span><h3>Lanzar una nueva línea antes de la temporada alta</h3>
+      <p>La empresa decide lanzar una nueva línea de producto para la próxima temporada alta. Se arma un equipo de proyecto con todas las áreas involucradas: desarrollo de producto, producción en planta, calidad, abastecimiento, marketing y logística hacia la red de franquicias. La fecha de lanzamiento está comprometida con toda la red: si se pierde, se pierde la ventana de venta.</p>
+      <p>La dirección nombra como líder del proyecto a una persona que viene de otra industria, con experiencia en gestión de proyectos. Para asegurar la fecha impone su metodología y su cronograma sin consultar, controla el avance en reuniones donde expone en público a quien se atrasa y fija metas individuales por área.</p>
+      <p>A mitad del proyecto hay hitos atrasados, las áreas se culpan entre sí (planta a abastecimiento, marketing a planta), dos integrantes clave piden salir del proyecto y los problemas aparecen tarde porque nadie los avisa. Cuando surge una duda, el equipo consulta a un referente técnico de planta antes que al líder.</p>
+      <p><strong>La pregunta: ¿por qué un equipo competente no llega a la fecha, y qué tiene que cambiar para lograr la meta?</strong></p>
+    </div>
+    <div class="card"><h3>Lo que está en juego</h3>
+      <div class="note"><strong>Para el negocio</strong><span>Llegar a la red de franquicias antes del inicio de la temporada alta: el time to market define cuánto se vende de la nueva línea.</span><span>Cumplir los compromisos de fecha asumidos con la red.</span><span>Costos de recuperar el atraso: horas extra, compras urgentes, lanzamientos parciales.</span></div>
+      <div class="note"><strong>Para el equipo</strong><span>Desgaste por la presión de la fecha.</span><span>Áreas enfrentadas en lugar de un equipo de proyecto.</span><span>Salida de personas clave y pérdida de saber técnico.</span></div>
+      <p class="countnote">Preguntas para el plenario: ¿alguna vez viviste un proyecto así? ¿Qué hacía el líder? ¿Qué hacía el equipo?</p>
+    </div>
+  </div>
+  ${respuestaCard()}`;
+},
+ishikawa(){
+  const byCat = id => S.causas.filter(c=>c.cat===id).sort((a,b)=>(a.ts||0)-(b.ts||0));
+  const bone = c => `<div class="bone ${c.side==='b'?'b':''}"><div><h3>${esc(c.t)}</h3><span class="chip">${esc(c.c)}</span></div><p class="q">${esc(c.q)}</p>${byCat(c.id).map(note).join('')||'<p class="empty">Sin causas todavía.</p>'}</div>`;
+  return consigna('Fase 2','Ishikawa colectivo: ¿por qué el proyecto no llega a la fecha?',[
+    'Cada participante carga al menos 2 causas, en la espina que corresponda.',
+    'Escribí hechos observables del caso, no adjetivos (“sanciona en público”, no “es autoritario”).',
+    'Usá la pregunta guía de cada espina: cada una se lee con un concepto clave.'],
+    'El efecto es de identidad, no de carácter',
+    'Las 6 espinas son las 6M adaptadas. La pregunta de fondo en todas es la misma: ¿qué hace que el líder quede del lado de “ellos” y que la fecha sea “su” fecha y no la del equipo?')+
+  `<div class="card"><div class="row">
+      <select id="cCat" aria-label="Espina">${CATS.map(c=>`<option value="${c.id}">${esc(c.t)} · ${esc(c.c)}</option>`).join('')}</select>
+      <input id="cTxt" class="grow" type="text" maxlength="140" placeholder="Causa observable (máx. 140 caracteres)">
+      <button class="primary" id="cAdd" type="button">Agregar causa</button>
+    </div></div>
+  <div class="fish">
+    <div class="grid3">${CATS.filter(c=>c.side==='a').map(bone).join('')}</div>
+    <div class="spine"><div class="lineh"></div><div class="effect"><small>EFECTO</small>El proyecto pierde la fecha: el equipo no sigue al líder ni hace suya la meta</div></div>
+    <div class="grid3">${CATS.filter(c=>c.side==='b').map(bone).join('')}</div>
+  </div>`;
+},
+votacion(){
+  const mine = S.votos.filter(v=>v.pid===S.pid).map(v=>v.causa);
+  const ranked = rankedCausas();
+  const topIds = ranked.filter(r=>r.v>0).slice(0,3).map(r=>r.id);
+  return consigna('Fase 3','Priorizar: ¿cuáles causas explican más?',[
+    `Tenés ${MAX_VOTES} votos. Usalos en las causas que, si se resolvieran, más ayudarían a recuperar la fecha.`,
+    'No votes la más repetida: votá la que tenga más poder explicativo.',
+    'Las 3 más votadas pasan a los 5 Porqués.'],
+    'Hipótesis antes que culpables',
+    'Evitá atribuir el resultado solo a la personalidad del líder. Priorizá causas que hablen de la relación entre el líder y el grupo.')+
+  `<div class="card"><div class="row" style="justify-content:space-between"><h3>Causas cargadas (${ranked.length})</h3><span class="tag">Te quedan ${Math.max(0,MAX_VOTES-mine.length)} votos</span></div>
+   ${ranked.length? ranked.map(r=>{const cat=CATS.find(c=>c.id===r.cat); const on=mine.includes(r.id); return `<div class="vote ${topIds.includes(r.id)?'top':''}"><span class="count">${r.v}</span><span><span style="display:block">${esc(r.texto)}</span><span class="tag">${esc(cat?cat.t:'')} · ${esc(cat?cat.c:'')}</span></span><button type="button" class="${on?'on':''}" data-vote="${esc(r.id)}" ${!on&&mine.length>=MAX_VOTES?'disabled':''}>${on?'Quitar voto':'Votar'}</button></div>`}).join('') : '<p class="empty">Todavía no hay causas. Volvé a la fase 2.</p>'}
+  </div>`;
+},
+porques(){
+  const doc = S.porques.find(p=>p.id===S.pid) || {};
+  const top = rankedCausas().filter(r=>r.v>0).slice(0,3);
+  const opts = (top.length?top:rankedCausas().slice(0,6));
+  const visibles = S.porques;
+  return consigna('Fase 4','5 Porqués',[
+    'Elegí una de las causas priorizadas.',
+    'Preguntá “¿por qué?” hasta 5 veces. Cada respuesta debe explicar la anterior.',
+    'Cerrá con la causa raíz y el concepto clave que la explica, y tocá “Grabar cambios”.'],
+    'De la conducta al mecanismo',
+    'Un buen 5 Porqués baja de la conducta (“sanciona en público”) al mecanismo de identidad (“compensa con poder coercitivo la falta de influencia”).')+
+  `<div class="grid2">
+   <div class="card"><h3>Tu análisis</h3>
+    <div class="whys">
+      <label for="wCausa">Causa priorizada</label>
+      <select id="wCausa"><option value="">Elegí una causa…</option>${opts.map(r=>`<option value="${esc(r.texto)}" ${doc.causa===r.texto?'selected':''}>${esc(r.texto)} (${r.v} votos)</option>`).join('')}</select>
+      ${[1,2,3,4,5].map(i=>`<label for="w${i}">¿Por qué? ${i}</label><input id="w${i}" type="text" maxlength="160" value="${esc(doc['p'+i]||'')}">`).join('')}
+      <label for="wRaiz">Causa raíz</label><input id="wRaiz" type="text" maxlength="200" value="${esc(doc.raiz||'')}">
+      <label for="wConc">Concepto clave que la explica</label>
+      <select id="wConc"><option value="">Elegí…</option>${CONCEPTS.map(c=>`<option ${doc.concepto===c?'selected':''}>${esc(c)}</option>`).join('')}</select>
+      <button class="primary" id="wSave" type="button">Grabar mi análisis</button>
+    </div></div>
+   <div class="card"><h3>Lo que encontró el grupo</h3>
+    ${visibles.length? visibles.slice().sort((a,b)=>(a.ts||0)-(b.ts||0)).map(p=>`<div class="salacard"><strong>${esc(p.causa||'')}</strong><ol>${[1,2,3,4,5].map(i=>p['p'+i]?`<li>${esc(p['p'+i])}</li>`:'').join('')}</ol>${p.raiz?`<div class="raiz"><strong>Raíz:</strong> ${esc(p.raiz)}</div>`:''}${p.concepto?`<span class="tag">${esc(p.concepto)}</span>`:''}</div>`).join('') : '<p class="empty">Nadie grabó su análisis todavía.</p>'}
+   </div></div>`;
+},
+diagnostico(){
+  const mine = S.diag.find(d=>d.id===S.pid) || {};
+  const valid = S.diag.filter(cuenta);
+  const avg = id => { const v=valid.map(d=>d[id]).filter(x=>typeof x==='number'); return v.length? (v.reduce((a,b)=>a+b,0)/v.length):0 };
+  const powerCount = key => POWER.map(p=>({t:p, v:valid.filter(d=>d[key]===p).length}));
+  return consigna('Fase 5','Termómetro: ¿qué forma de liderar predomina y cuál debería?',[
+    'Ponete en el lugar de un integrante del equipo de proyecto y calificá al líder del caso (1 = nada, 7 = totalmente).',
+    'Elegí qué base de poder usa hoy y cuál debería predominar.',
+    'Comparen: ¿dónde está la brecha más grande?'],
+    'Pulso ILI y bases de poder',
+    'Las 4 dimensiones son las del Identity Leadership Inventory (ILI); las preguntas son paráfrasis didácticas. Las bases de poder son las de French y Raven: recompensa y coerción logran conformidad; el poder referente surge de la identidad compartida.')+
+  `<div class="grid2">
+   <div class="card"><h3>Tu calificación</h3>
+    ${DIMS.map(d=>`<div class="dim"><strong>${esc(d.t)}</strong><span class="muted" style="font-size:14px">${esc(d.q)}</span><div class="scale" role="group" aria-label="${esc(d.t)}">${[1,2,3,4,5,6,7].map(v=>`<button type="button" class="${mine[d.id]===v?'on':''}" data-dim="${d.id}" data-val="${v}">${v}</button>`).join('')}</div></div>`).join('')}
+    <div class="row"><label for="pHoy"><strong>Poder que usa hoy</strong></label><select id="pHoy"><option value="">Elegí…</option>${POWER.map(p=>`<option ${mine.hoy===p?'selected':''}>${p}</option>`).join('')}</select></div>
+    <div class="row"><label for="pDebe"><strong>Poder que debería predominar</strong></label><select id="pDebe"><option value="">Elegí…</option>${POWER.map(p=>`<option ${mine.debe===p?'selected':''}>${p}</option>`).join('')}</select></div>
+   </div>
+   <div class="card"><h3>Resultado del grupo (${valid.length} respuesta${valid.length===1?'':'s'})</h3>
+    ${DIMS.map(d=>{const a=avg(d.id); return `<div class="bar"><span>${esc(d.t)}</span><span class="v">${a?a.toFixed(1):'–'}</span><div class="track"><div class="fill" style="width:${Math.round(a/7*100)}%"></div></div></div>`}).join('')}
+    <p class="muted" style="font-size:13px">Promedio sobre 7.</p>
+    <div class="grid2"><div style="display:flex;flex-direction:column;gap:8px"><strong>Poder hoy</strong>${bars(powerCount('hoy'))}</div><div style="display:flex;flex-direction:column;gap:8px"><strong>Poder que debería predominar</strong>${bars(powerCount('debe'))}</div></div>
+   </div></div>`;
+},
+a3(){
+  const top = rankedCausas().filter(r=>r.v>0).slice(0,3);
+  const raices = S.porques.filter(p=>p.raiz);
+  return consigna('Fase 6','A3: contramedidas con el programa 5R',[
+    'Cada participante propone al menos 2 contramedidas, en pasos distintos del 5R.',
+    'Cada acción debe ser concreta para el equipo de proyecto y ayudar a llegar a la fecha, con un indicador para medirla.',
+    'Nombrá el concepto clave que la sostiene: si no hay concepto, no es una contramedida de liderazgo.'],
+    'Programa 5R',
+    'Readying, Reflecting, Representing, Realizing, Reviewing: el camino para que el líder pase a gestionar el “nosotros” en lugar de controlar a las personas.')+
+  `<div class="a3head">
+    <div class="card"><span class="eyebrow">Problema y meta</span><p>El proyecto de lanzamiento pierde la fecha: autoridad formal sin influencia.</p><p class="muted" style="font-size:14px"><strong>Meta:</strong> lanzar en la fecha comprometida con la red, con el equipo completo.</p></div>
+    <div class="card"><span class="eyebrow">Causas priorizadas</span>${top.length?`<ol style="margin:0;padding-left:20px">${top.map(t=>`<li>${esc(t.texto)} <span class="muted">(${t.v})</span></li>`).join('')}</ol>`:'<p class="empty">Se completa con la votación.</p>'}</div>
+    <div class="card"><span class="eyebrow">Causas raíz (5 Porqués)</span>${raices.length?`<ul style="margin:0;padding-left:20px">${raices.map(r=>`<li>${esc(r.raiz)}</li>`).join('')}</ul>`:'<p class="empty">Se completa con los 5 Porqués.</p>'}</div>
+  </div>
+  <div class="card"><span class="eyebrow" style="color:var(--blue)">Claves de la relación líder–equipo</span>
+    <p class="muted" style="font-size:14px">Usalas para pensar contramedidas que vayan más allá del “nosotros”.</p>
+    <div class="grid3" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
+      <div class="note"><strong>1 · Se construye entre los dos</strong><span>El líder pone la fecha; el equipo decide si la hace suya o cumple lo mínimo.</span></div>
+      <div class="note"><strong>2 · El mejor ejemplo del grupo</strong><span>El líder es el primero en hacer lo que pide, no uno más ni alguien aparte.</span></div>
+      <div class="note"><strong>3 · Un nosotros más amplio</strong><span>Pasar de áreas enfrentadas a un solo equipo frente al desafío común: llegar a la red a tiempo.</span></div>
+      <div class="note"><strong>4 · No todo es el líder</strong><span>El éxito y el fracaso se le atribuyen de más; mirar también lo que pasa en el grupo.</span></div>
+      <div class="note"><strong>5 · El poder se gasta</strong><span>Exponer y sancionar logra cumplimiento corto; cuanto más control, menos influencia.</span></div>
+    </div>
+  </div>
+  <div class="card"><h3>Nueva contramedida</h3><div class="row">
+    <select id="aPaso" aria-label="Paso 5R">${STEPS5R.map(s=>`<option value="${s.id}">${s.t}</option>`).join('')}</select>
+    <input id="aAcc" class="grow" type="text" maxlength="160" placeholder="Acción concreta con el equipo de proyecto">
+    <select id="aConc" aria-label="Concepto clave"><option value="">Concepto clave…</option>${CONCEPTS.map(c=>`<option>${esc(c)}</option>`).join('')}</select>
+    <input id="aKpi" type="text" maxlength="80" placeholder="Indicador (ej.: hitos a tiempo)" style="width:190px">
+    <button class="primary" id="aAdd" type="button">Agregar</button></div></div>
+  <div class="a3cols">${STEPS5R.map(s=>{const items=S.contra.filter(c=>c.paso===s.id).sort((a,b)=>(a.ts||0)-(b.ts||0)); return `<div class="a3col"><h3>${s.t}</h3><p class="muted" style="font-size:13px">${esc(s.d)}</p>${items.map(c=>`<div class="note"><span>${esc(c.accion)}</span>${c.concepto?`<span class="tag" style="align-self:flex-start;white-space:normal">${esc(c.concepto)}</span>`:''}${c.kpi?`<span style="font-size:13px"><strong>Indicador:</strong> ${esc(c.kpi)}</span>`:''}${c.pid===S.pid?`<span class="meta"><span>Tuyo</span><button type="button" data-del="contramedidas/${esc(c.id)}">Borrar</button></span>`:''}</div>`).join('')||'<p class="empty">Sin contramedidas.</p>'}</div>`}).join('')}</div>`;
+},
+cierre(){
+  const mine = S.cierre.find(c=>c.id===S.pid) || {};
+  const valid = S.cierre.filter(cuenta);
+  const counts = SIGNALS.map(s=>({t:s, v:valid.filter(c=>c.senal===s).length}));
+  return consigna('Fase 7','Alerta temprana: ¿qué vas a vigilar en tu próximo proyecto?',[
+    'Elegí la señal temprana que más ves (o podrías ver) en tus proyectos.',
+    'Escribí un compromiso concreto para esta semana y tocá “Grabar cambios”.',
+    'El facilitador lee 3 compromisos en voz alta para cerrar.'],
+    'Detectar antes de que caigan los números',
+    'Los problemas de identidad aparecen antes que los atrasos: primero en el lenguaje y en la conducta del grupo. Cuando el equipo dice “su fecha” en lugar de “nuestra fecha”, el liderazgo ya se está perdiendo.')+
+  `<div class="grid2">
+   <div class="card"><h3>Tu señal y tu compromiso</h3>
+     <label for="sSen" class="muted" style="font-size:13px;font-weight:600">Señal temprana</label>
+     <select id="sSen"><option value="">Elegí…</option>${SIGNALS.map(s=>`<option ${mine.senal===s?'selected':''}>${esc(s)}</option>`).join('')}</select>
+     <label for="sComp" class="muted" style="font-size:13px;font-weight:600">Mi compromiso para esta semana</label>
+     <textarea id="sComp" maxlength="200" placeholder="Ej.: abrir la reunión de avance preguntando qué necesita cada área">${esc(mine.compromiso||'')}</textarea>
+     <button class="primary" id="sSave" type="button">Grabar</button>
+   </div>
+   <div class="card"><h3>Señales del grupo</h3>${bars(counts)}
+     <h3>Compromisos (${valid.filter(c=>c.compromiso).length})</h3>
+     ${valid.filter(c=>c.compromiso).map(c=>`<div class="note"><span>${esc(c.compromiso)}</span></div>`).join('')||'<p class="empty">Todavía no hay compromisos.</p>'}
+   </div></div>`;
+},
+};
+
+// ---------- grabar ----------
+async function addCausa(){ const txt=$('#cTxt')?.value.trim(); if(!txt) return null; const ok=await safe(S.db.collection('causas').add({cat:$('#cCat').value, texto:txt.slice(0,140), pid:S.pid, ts:Date.now(), ...me()})); if(ok) $('#cTxt').value=''; return ok }
+async function addContra(){ const acc=$('#aAcc')?.value.trim(); if(!acc) return null; const ok=await safe(S.db.collection('contramedidas').add({paso:$('#aPaso').value, accion:acc, concepto:$('#aConc').value, kpi:$('#aKpi').value.trim(), pid:S.pid, ts:Date.now(), ...me()})); if(ok){ $('#aAcc').value=''; $('#aKpi').value=''; } return ok }
+async function savePorques(){ const m=me(); const d={causa:$('#wCausa').value, raiz:$('#wRaiz').value.trim(), concepto:$('#wConc').value, ...m, ts:Date.now()}; [1,2,3,4,5].forEach(i=>d['p'+i]=$('#w'+i).value.trim());
+  if(!d.causa && !d.raiz && ![1,2,3,4,5].some(i=>d['p'+i])) return null;
+  if(!d.causa){toast('Elegí la causa que vas a analizar.'); return false}
+  return safe(S.db.doc('porques/'+S.pid).set(d)); }
+async function saveCierre(){ const sen=$('#sSen').value, comp=$('#sComp').value.trim().slice(0,200); if(!sen && !comp) return null; return safe(S.db.doc('cierre/'+S.pid).set({senal:sen, compromiso:comp, ...me()})); }
+async function saveDiagSelects(){ const hoy=$('#pHoy').value, debe=$('#pDebe').value; if(!hoy && !debe) return null; const cur=S.diag.find(d=>d.id===S.pid)||{}; const b={...cur, ...me(), hoy, debe}; delete b.id; return safe(S.db.doc('diag/'+S.pid).set(b)); }
+$('#saveAll').addEventListener('click', async () => {
+  if(!needDb()) return;
+  const fn = {caso:saveResp, ishikawa:addCausa, porques:savePorques, a3:addContra, cierre:saveCierre, diagnostico:saveDiagSelects}[S.view];
+  const r = fn ? await fn() : null;
+  if(r===false) return;
+  markSaved(); toast('Cambios grabados');
+});
+
+// ---------- render ----------
+function keepFocus(fn){
+  const a=document.activeElement; const id=a&&a.id; const val=a&&('value' in a)?a.value:null; const sel=a&&a.selectionStart;
+  fn();
+  if(id){const el=document.getElementById(id); if(el && $('#main').contains(el)){ if(val!=null && el.tagName!=='SELECT' && el.value!==val) el.value=val; el.focus(); try{ if(sel!=null) el.setSelectionRange(sel,sel)}catch(e){} }}
+}
+function renderPanel(){
+  const drafts={}; ['rOtro','cTxt','aAcc','aKpi','w1','w2','w3','w4','w5','wRaiz','sComp','cCat','aPaso','aConc','wCausa','wConc','sSen','pHoy','pDebe'].forEach(id=>{const el=document.getElementById(id); if(el) drafts[id]=el.value});
+  const rSel=document.querySelector('input[name="rOp"]:checked'); const rVal=rSel?rSel.value:null;
+  keepFocus(()=>{ $('#main').innerHTML = `<div class="panel">${PANELS[S.view]()}</div>`; });
+  Object.entries(drafts).forEach(([id,v])=>{const el=document.getElementById(id); if(el && v && el!==document.activeElement) el.value=v});
+  if(rVal){ const r=document.querySelector('input[name="rOp"][value="'+rVal+'"]'); if(r) r.checked=true; }
+  const rc=$('#rCount'), ro=$('#rOtro'); if(rc&&ro) rc.textContent=ro.value.length+'/'+OTRO_MAX;
+}
+let renderQueued=false;
+function scheduleRender(){ if(renderQueued) return; renderQueued=true; requestAnimationFrame(()=>{renderQueued=false; renderNav(); renderPanel();}); }
+
+$('#main').addEventListener('click', async e => {
+  const t = e.target.closest('button'); if(!t) return;
+  const m = me();
+  if(t.id==='rSave'){ if(!needDb()) return; const r=await saveResp(); if(r) toast('Respuesta grabada'); else if(r===null) toast('Elegí una opción o escribí tu respuesta.'); }
+  else if(t.id==='cAdd'){ if(!needDb()) return; const r=await addCausa(); if(r===null) toast('Escribí la causa antes de agregarla.'); else if(r) toast('Causa agregada'); }
+  else if(t.dataset.del){ if(!needDb()) return; await safe(S.db.doc(t.dataset.del).delete(),'Borrado'); }
+  else if(t.dataset.vote){ if(!needDb()) return; const cid=t.dataset.vote; const ref=S.db.doc('votos/'+canon(S.pid+'_'+cid));
+    const on=S.votos.some(v=>v.pid===S.pid&&v.causa===cid);
+    if(on) await safe(ref.delete()); else { if(S.votos.filter(v=>v.pid===S.pid).length>=MAX_VOTES){toast('Ya usaste tus '+MAX_VOTES+' votos.');return} await safe(ref.set({pid:S.pid, causa:cid})); } }
+  else if(t.id==='wSave'){ if(!needDb()) return; const r=await savePorques(); if(r) toast('Análisis grabado'); else if(r===null) toast('Completá al menos la causa y un porqué.'); }
+  else if(t.dataset.dim){ if(!needDb()) return; const cur=S.diag.find(d=>d.id===S.pid)||{}; const body={...cur, ...m, [t.dataset.dim]:Number(t.dataset.val)}; delete body.id; await safe(S.db.doc('diag/'+S.pid).set(body)); }
+  else if(t.id==='aAdd'){ if(!needDb()) return; const r=await addContra(); if(r===null) toast('Escribí la acción concreta.'); else if(r) toast('Contramedida agregada'); }
+  else if(t.id==='sSave'){ if(!needDb()) return; const r=await saveCierre(); if(r) toast('Grabado'); else if(r===null) toast('Elegí una señal o escribí tu compromiso.'); }
+});
+$('#main').addEventListener('change', async e => {
+  const t=e.target; if(t.id==='pHoy'||t.id==='pDebe'){ if(!needDb()) return; await saveDiagSelects(); }
+});
+$('#main').addEventListener('input', e => { if(e.target.id==='rOtro'){ const c=$('#rCount'); if(c) c.textContent=e.target.value.length+'/'+OTRO_MAX; const r=document.querySelector('input[name="rOp"][value="otra"]'); if(r && e.target.value.trim()) r.checked=true; } });
+$('#main').addEventListener('keydown', e => { if(e.key==='Enter' && (e.target.id==='cTxt'||e.target.id==='aAcc')){ e.preventDefault(); (e.target.id==='cTxt'?$('#cAdd'):$('#aAdd')).click(); } });
+
+
+// ---------- facilitador ----------
+function writeEstado(patch){ return safe(S.db.doc('estado/sesion').set({fase:S.fase, ...patch})); }
+let facilReady=false;
+function setupFacil(){
+  $('#facilLogin').hidden=true; $('#facil').hidden=false; if(facilReady) return; facilReady=true;
+  $('#fFase').innerHTML = PHASES.filter(p=>p.id!=='guia').map(p=>`<option value="${p.id}">${p.n} · ${esc(p.t)}</option>`).join('');
+  $('#fFase').value=S.fase;
+  $('#fSet').onclick = async () => { if(await writeEstado({fase:$('#fFase').value})) toast('Todos fueron llevados a la fase'); };
+  const zone=$('#fResetZone');
+  const ask = () => { zone.innerHTML = `<span>¿Borrar todas las respuestas, votos y escritos y volver a la fase 1?</span><button id="fYes" type="button">Sí, reiniciar</button><button id="fNo" type="button">Cancelar</button>`;
+    $('#fNo').onclick = () => { zone.innerHTML='<button id="fReset" type="button">Reiniciar todo de cero…</button>'; $('#fReset').onclick=ask; };
+    $('#fYes').onclick = async () => { zone.innerHTML='<span>Reiniciando…</span>';
+      try{ for(const col of ['respuestas_caso','causas','votos','porques','diag','contramedidas','cierre']){ const snap=await S.db.collection(col).get(); let b=S.db.batch(), n=0; for(const d of snap.docs){ b.delete(d.ref); if(++n===400){ await b.commit(); b=S.db.batch(); n=0; } } if(n) await b.commit(); }
+        await S.db.doc('estado/sesion').set({fase:'caso'}); toast('Taller reiniciado de cero'); }catch(e){ toast('No se pudo reiniciar todo. Probá de nuevo.'); }
+      zone.innerHTML='<button id="fReset" type="button">Reiniciar todo de cero…</button>'; $('#fReset').onclick=ask; };
+  };
+  $('#fReset').onclick = ask;
+}
+
+// ---------- inicio ----------
+renderNav(); renderPanel();
+function offline(msg){ $('#conn').textContent=msg; $('#conn').className='status off'; }
+function showLogin(){
+  if(S.canEdit || location.hash!=='#facilitador') return;
+  $('#facilLogin').hidden=false;
+  $('#fEntrar').onclick = async () => {
+    const k=$('#fClave').value.trim(); if(!k){ toast('Escribí la clave.'); return }
+    try{ await S.db.doc('facilitadores/'+S.pid).set({clave:k, ts:Date.now()}); S.canEdit=true; setupFacil(); scheduleRender(); toast('Entraste como facilitador'); }
+    catch(e){ toast('Clave incorrecta.'); }
+  };
+}
+(async () => {
+  const cfg = window.FIREBASE_CONFIG || {};
+  if(!window.firebase){ offline('No se pudo cargar Firebase. Revisá la conexión a internet.'); return; }
+  if(!cfg.apiKey || String(cfg.apiKey).includes('PEGAR')){ offline('Falta configurar Firebase: completá FIREBASE_CONFIG en el archivo.'); return; }
+  try{
+    firebase.initializeApp(cfg);
+    const cred = await firebase.auth().signInAnonymously();
+    S.pid = cred.user.uid;
+  }catch(e){ offline('No se pudo iniciar sesión anónima. Activá “Anónimo” en Authentication de Firebase.'); console.error(e); return; }
+  const db = firebase.firestore();
+  S.db = db; $('#conn').textContent='Tablero compartido en vivo'; $('#conn').className='status live';
+  try{ const f = await db.doc('facilitadores/'+S.pid).get(); if(f.exists) S.canEdit = true; }catch(e){}
+  const lost = (e) => { console.error(e); offline('Se cortó la conexión. Recargá la página.'); };
+  const sub = (col, key) => db.collection(col).onSnapshot(s => { S[key] = s.docs.map(d=>({id:d.id, ...d.data()})); scheduleRender(); }, lost);
+  sub('respuestas_caso','resp'); sub('causas','causas'); sub('votos','votos'); sub('porques','porques'); sub('diag','diag'); sub('contramedidas','contra'); sub('cierre','cierre');
+  let first = true;
+  db.doc('estado/sesion').onSnapshot(s => { const d = s.exists ? s.data() : {}; const prev=S.fase; S.fase = d.fase || 'caso';
+    if(first || prev!==S.fase){ if(!S.canEdit || first) S.view = S.fase; first=false; }
+    if(S.canEdit){ $('#fFase').value = S.fase; } scheduleRender(); }, lost);
+  if(S.canEdit) setupFacil(); else showLogin();
+  window.addEventListener('hashchange', showLogin);
+  scheduleRender();
+})();
+})();
+</script>
+
+</body>
+</html>
