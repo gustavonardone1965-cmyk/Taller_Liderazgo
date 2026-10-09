@@ -571,7 +571,7 @@ function showLogin(){
     firebase.initializeApp(cfg);
     const cred = await firebase.auth().signInAnonymously();
     S.pid = cred.user.uid;
-  }catch(e){ offline('No se pudo iniciar sesión anónima. Activá “Anónimo” en Authentication de Firebase.'); console.error(e); return; }
+  }catch(e){ const c=(e&&e.code)||'sin código'; const hint = location.protocol==='file:' ? 'Abrí la página desde el link de GitHub, no como archivo.' : (c.includes('operation-not-allowed')||c.includes('admin-restricted') ? 'Activá “Anónimo” en Authentication y tocá Guardar.' : (c.includes('unauthorized-domain')||c.includes('requests-from-referer') ? 'Agregá tu dominio de GitHub en Authentication > Configuración > Dominios autorizados.' : (c.includes('api-key')||c.includes('configuration-not-found') ? 'Revisá FIREBASE_CONFIG y que Authentication esté iniciado (botón Comenzar).' : 'Revisá Authentication en Firebase.'))); offline('No se pudo iniciar sesión anónima ('+c+'). '+hint); console.error(e); return; }
   const db = firebase.firestore();
   S.db = db; $('#conn').textContent='Tablero compartido en vivo'; $('#conn').className='status live';
   try{ const f = await db.doc('facilitadores/'+S.pid).get(); if(f.exists) S.canEdit = true; }catch(e){}
