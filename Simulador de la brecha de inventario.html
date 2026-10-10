@@ -1,0 +1,295 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Simulador de la brecha de inventario</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Source+Sans+3:wght@400;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: una "mesa de trabajo" con una regleta de 8 etapas arriba y una ficha por etapa; cada ficha = herramienta + qué hacés + interacción + lectura */
+:root{
+  --bg:#eef3f4; --card:#ffffff; --ink:#13262c; --mut:#56707a; --line:#c9d7db;
+  --teal:#0f4c5c; --teal2:#dcebef; --amber:#c98a00; --amberbg:#fff1b8;
+  --ok:#1e7b4d; --okbg:#e0f2e7; --bad:#a63a2b; --badbg:#fbe3df; --q:#8a6a00;
+  --f-disp:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --f-num:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1a1e; --card:#16262b; --ink:#e3eef1; --mut:#97adb5; --line:#2b4148;
+  --teal:#7cc3d6; --teal2:#1b3440; --amber:#f0c46a; --amberbg:#3a3012;
+  --ok:#7fd6a3; --okbg:#173a29; --bad:#f09a8c; --badbg:#3d1f1a; --q:#f0c46a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1a1e; --card:#16262b; --ink:#e3eef1; --mut:#97adb5; --line:#2b4148;
+  --teal:#7cc3d6; --teal2:#1b3440; --amber:#f0c46a; --amberbg:#3a3012;
+  --ok:#7fd6a3; --okbg:#173a29; --bad:#f09a8c; --badbg:#3d1f1a; --q:#f0c46a; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 var(--f-body);margin:0}
+.wrap{max-width:1040px;margin:0 auto;padding-inline:16px;padding-block:20px 56px}
+h1,h2,h3{font-family:var(--f-disp);line-height:1.15;text-wrap:balance;margin:0}
+h1{font-size:clamp(1.6rem,3.6vw,2.3rem);font-weight:800}
+h2{font-size:1.35rem;font-weight:800}
+h3{font-size:1.02rem;font-weight:600}
+p{margin:0}
+.num{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+.lede{color:var(--mut);max-width:65ch;margin-top:6px}
+.tag{display:inline-block;font:600 .72rem/1 var(--f-body);letter-spacing:.06em;text-transform:uppercase;padding:5px 8px;border-radius:4px;background:var(--teal2);color:var(--teal)}
+/* regleta de etapas */
+.rail{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px;margin:18px 0 14px}
+.rail button{all:unset;cursor:pointer;display:flex;flex-direction:column;gap:2px;padding:8px 8px;border-top:4px solid var(--line);color:var(--mut);font-size:.82rem;line-height:1.2}
+.rail button b{font-family:var(--f-num);font-size:.75rem;color:var(--mut)}
+.rail button[aria-current="step"]{border-top-color:var(--teal);color:var(--ink)}
+.rail button.done{border-top-color:var(--ok)}
+.rail button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+@media (max-width:720px){.rail{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.stage{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:20px;display:grid;gap:16px}
+.head{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.learn{background:var(--amberbg);border-left:5px solid var(--amber);padding:10px 14px;font-weight:700;font-size:.93rem;border-radius:4px}
+.learn span{color:var(--q)}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+@media (max-width:760px){.grid2{grid-template-columns:1fr}}
+.field{display:grid;gap:4px}
+.field label{font-size:.85rem;color:var(--mut);font-weight:600}
+input[type=number],input[type=text]{font:500 1rem var(--f-num);padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);width:100%}
+input[type=range]{width:100%;accent-color:var(--teal)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:10px}
+.kpi{border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.kpi small{display:block;color:var(--mut);font-size:.78rem;font-weight:600;letter-spacing:.03em;text-transform:uppercase}
+.kpi strong{font:500 1.12rem var(--f-num);font-variant-numeric:tabular-nums;white-space:nowrap}
+.kpi.bad strong{color:var(--bad)} .kpi.ok strong{color:var(--ok)}
+.read{background:var(--teal2);border-radius:6px;padding:10px 14px}
+.read b{color:var(--teal)}
+.nav{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.btn{font:700 .95rem var(--f-body);padding:10px 16px;border-radius:6px;border:1px solid var(--teal);background:var(--teal);color:var(--card);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--teal)}
+.btn:focus-visible,.chip:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+svg text{fill:var(--ink);font-family:var(--f-body)}
+.chart{width:100%;height:auto;overflow:visible}
+.fish{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (max-width:760px){.fish{grid-template-columns:1fr}}
+.bone{border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.bone h3{background:var(--teal);color:var(--card);font-size:.85rem;letter-spacing:.05em;text-transform:uppercase;padding:6px 10px}
+.bone ul{list-style:none;margin:0;padding:8px;display:grid;gap:6px}
+.chip{all:unset;cursor:pointer;display:block;width:100%;box-sizing:border-box;padding:7px 9px;border:1px solid var(--line);border-radius:6px;font-size:.9rem;line-height:1.3;background:var(--card)}
+.chip.voted{border-color:var(--amber);background:var(--amberbg)}
+.chip.v-ok{border-color:var(--ok);background:var(--okbg)}
+.chip.v-no{border-color:var(--line);color:var(--mut);text-decoration:line-through}
+.chip.v-q{border-color:var(--q);border-style:dashed}
+.chip.v-root{border-color:var(--bad);background:var(--badbg);font-weight:700}
+.chip em{display:block;font-style:normal;font-size:.8rem;color:var(--mut);margin-top:3px;text-decoration:none}
+.headfish{border:2px solid var(--bad);background:var(--badbg);border-radius:8px;padding:12px;font-weight:700}
+.why{display:grid;gap:10px}
+.why .lvl{border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.why .opts{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.why .opts .chip{width:auto;flex:1 1 240px}
+.msg{font-size:.92rem;margin-top:6px}
+.msg.ok{color:var(--ok)} .msg.bad{color:var(--bad)}
+.cm{display:grid;gap:8px}
+.cm label{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:8px;padding:9px 12px;cursor:pointer}
+.cm input{margin-top:4px;accent-color:var(--teal)}
+.cm .fb{display:block;font-size:.85rem;margin-top:2px}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.9rem;min-width:620px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--teal);font-size:.8rem;text-transform:uppercase;letter-spacing:.04em}
+td select{font:inherit;padding:4px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--ink)}
+.bar{height:10px;background:var(--teal2);border-radius:5px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ok);width:0;transition:width .3s}
+.pill{font:600 .78rem var(--f-body);padding:3px 8px;border-radius:10px}
+.p-ok{background:var(--okbg);color:var(--ok)} .p-run{background:var(--amberbg);color:var(--q)} .p-pen{background:var(--badbg);color:var(--bad)}
+.foot{color:var(--mut);font-size:.82rem;margin-top:14px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <span class="tag">Franquicias Grido · Mejora continua</span>
+  <h1 style="margin-top:8px">Simulador de la brecha de inventario</h1>
+  <p class="lede">El caso práctico de la guía, para hacerlo vos con el equipo: medís la brecha, la ubicás, buscás la causa con Ishikawa y 5 porqués, armás el A3, cargás el plan y ves cuánto vuelve al resultado. Viene cargado con las cifras ilustrativas del caso; cambialas por las tuyas.</p>
+
+  <nav class="rail" id="rail" aria-label="Etapas del caso"></nav>
+  <section class="stage" id="stage" aria-live="polite"></section>
+  <p class="foot">Cifras ilustrativas del caso práctico de la guía «Mejora continua en la franquicia, paso a paso». El cálculo de la etapa 8 es un modelo simple para practicar, no un pronóstico.</p>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+const fmt=n=>'$ '+Math.round(n).toLocaleString('es-AR');
+const pct=n=>(Math.round(n*10)/10).toLocaleString('es-AR')+' %';
+const S={ventas:10000000,cmvStd:40,stockSis:2000000,stockCont:1700000,gastos:4800000,
+  fam:[['Helado a granel',240000],['Postres y bombones',30000],['Palitos y otros',20000],['Insumos',10000]],
+  votes:new Set(),verified:false, why:[null,null,null,null,null], cm:new Set(),
+  plan:null, gram:285, merma:0, degu:0, pesar:false, step:0, done:new Set()};
+
+const STEPS=[
+ {t:'Medir la brecha',h:'H1 · Ficha de arranque'},
+ {t:'Dónde está',h:'Pareto'},
+ {t:'Ishikawa',h:'H10 · Ishikawa'},
+ {t:'Verificar',h:'Dato por causa'},
+ {t:'5 porqués',h:'H9 · 5 porqués'},
+ {t:'Contramedidas',h:'H11 · A3'},
+ {t:'Plan de acción',h:'H8 · Plan'},
+ {t:'Resultado',h:'H7 · Tablero'}];
+
+function rail(){ $('#rail').innerHTML=STEPS.map((s,i)=>`<button type="button" data-i="${i}" ${i===S.step?'aria-current="step"':''} class="${S.done.has(i)?'done':''}"><b>${i+1}</b>${s.t}</button>`).join('');
+  document.querySelectorAll('#rail button').forEach(b=>b.onclick=()=>go(+b.dataset.i)); }
+function go(i){S.done.add(S.step);S.step=i;rail();render();window.scrollTo({top:0,behavior:'smooth'});}
+function shell(i,learn,body){const s=STEPS[i];
+  return `<div class="head"><h2>${i+1} · ${s.t}</h2><span class="tag">${s.h}</span></div>
+  <div class="learn"><span>Qué aprendés:</span> ${learn}</div>${body}
+  <div class="nav"><button class="btn ghost" type="button" id="prev" ${i===0?'disabled':''}>← Etapa anterior</button>
+  <button class="btn" type="button" id="next" ${i===7?'disabled':''}>Etapa siguiente →</button></div>`;}
+function bindNav(){ $('#prev').onclick=()=>go(Math.max(0,S.step-1)); $('#next').onclick=()=>go(Math.min(7,S.step+1)); }
+
+function calc(){const brecha=Math.max(0,S.stockSis-S.stockCont);const cmvS=S.ventas*S.cmvStd/100;const cmvR=cmvS+brecha;
+  const resS=S.ventas-cmvS-S.gastos, resR=S.ventas-cmvR-S.gastos; return {brecha,cmvS,cmvR,resS,resR};}
+
+/* ---------- etapas ---------- */
+const R=[];
+R[0]=()=>{const c=calc();return shell(0,'convertir la diferencia entre el stock del sistema y el contado en pesos de ganancia que se escapan.',`
+ <div class="grid2"><div style="display:grid;gap:10px">
+  ${[['ventas','Ventas del mes ($)'],['cmvStd','CMV estándar (% de la venta, según el sistema)'],['stockSis','Stock según sistema, a costo ($)'],['stockCont','Stock contado en la cámara, a costo ($)'],['gastos','Gastos del mes: alquiler, sueldos, energía… ($)']]
+   .map(([k,l])=>`<div class="field"><label for="f-${k}">${l}</label><input type="number" id="f-${k}" value="${S[k]}" step="1000" min="0"></div>`).join('')}
+ </div><div style="display:grid;gap:10px;align-content:start">
+  <div class="kpis">
+   <div class="kpi bad"><small>Brecha</small><strong id="k1">${fmt(c.brecha)}</strong></div>
+   <div class="kpi"><small>Brecha / venta</small><strong id="k2">${pct(c.brecha/S.ventas*100)}</strong></div>
+   <div class="kpi"><small>CMV real</small><strong id="k3">${pct(c.cmvR/S.ventas*100)}</strong></div>
+   <div class="kpi"><small>Resultado sin brecha</small><strong id="k4">${fmt(c.resS)}</strong></div>
+   <div class="kpi bad"><small>Resultado real</small><strong id="k5">${fmt(c.resR)}</strong></div>
+  </div>
+  <p class="read" id="r0"></p></div></div>`);};
+function upd0(){const c=calc(); $('#k1').textContent=fmt(c.brecha); $('#k2').textContent=pct(c.brecha/S.ventas*100);
+ $('#k3').textContent=pct(c.cmvR/S.ventas*100); $('#k4').textContent=fmt(c.resS); $('#k5').textContent=fmt(c.resR);
+ const share=c.resS>0?c.brecha/c.resS*100:0;
+ $('#r0').innerHTML=`<b>Lectura:</b> faltan ${fmt(c.brecha)} de mercadería. Esa plata sale directo del resultado: se come el <b>${pct(share)}</b> de la ganancia que deberías tener. Es tu línea de base: anotala en la H1.`;}
+
+R[1]=()=>shell(1,'ubicar el problema antes de buscar causas: pocas familias explican casi toda la brecha.',`
+ <p>Cargá la brecha del mes separada por familia (comparando sistema y conteo de cada una). El gráfico la ordena de mayor a menor y suma el acumulado.</p>
+ <div class="grid2"><div style="display:grid;gap:8px">${S.fam.map((f,i)=>`<div class="field"><label for="fa${i}">${f[0]} ($)</label><input type="number" id="fa${i}" value="${f[1]}" step="1000" min="0"></div>`).join('')}</div>
+ <div><svg class="chart" id="par" viewBox="0 0 460 260" role="img" aria-label="Pareto de la brecha por familia"></svg></div></div>
+ <p class="read" id="r1"></p>`);
+function pareto(svg,items,unit){const tot=items.reduce((a,b)=>a+b[1],0)||1;const it=[...items].sort((a,b)=>b[1]-a[1]);const W=460,H=260,L=10,B=200,T=30,bw=(W-2*L)/it.length;const mx=it[0][1]||1;let cum=0,pts=[],out='';
+ it.forEach((d,i)=>{const h=(B-T)*d[1]/mx, x=L+i*bw+bw*.15, w=bw*.7; cum+=d[1]; const cp=cum/tot; const before=(cum-d[1])/tot;
+  const col=before<0.8?'var(--bad)':'var(--teal)';
+  out+=`<rect x="${x}" y="${B-h}" width="${w}" height="${h}" fill="${col}" rx="3"></rect><text x="${x+w/2}" y="${B-h-6}" text-anchor="middle" font-size="12" font-weight="700">${Math.round(d[1]/tot*100)} %</text><text x="${x+w/2}" y="${B+16}" text-anchor="middle" font-size="11">${d[0].length>16?d[0].slice(0,15)+'…':d[0]}</text>`;
+  pts.push([x+w/2,B-(B-T)*cp]);});
+ out+=`<line x1="${L}" y1="${B}" x2="${W-L}" y2="${B}" stroke="var(--line)"></line><polyline points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="var(--amber)" stroke-width="2.5"></polyline>`+pts.map((p,i)=>`<circle cx="${p[0]}" cy="${p[1]}" r="4" fill="var(--amber)"></circle>`).join('')+
+ `<text x="${W-L}" y="${T-12}" text-anchor="end" font-size="11" fill="var(--mut)">línea: acumulado · rojo: lo que explica el primer 80 %</text>`;
+ svg.innerHTML=out; return it;}
+function upd1(){S.fam.forEach((f,i)=>f[1]=+$('#fa'+i).value||0); const it=pareto($('#par'),S.fam); const tot=it.reduce((a,b)=>a+b[1],0)||1;
+ $('#r1').innerHTML=`<b>Decisión:</b> «${it[0][0]}» explica el <b>${Math.round(it[0][1]/tot*100)} %</b> de la brecha. El Ishikawa se hace sobre esa familia, no sobre «todo el inventario».`;}
+
+const CAUSES=[
+ ['Mano de obra','Se sirve «con colmo» para quedar bien','ok','Pesaje de 40 servicios: el ¼ sale con 285 g (estándar 250 g).'],
+ ['Mano de obra','Degustaciones y consumo propio sin registrar','ok','Dos semanas contando cucharitas y consumo: $ 25.000 por mes.'],
+ ['Mano de obra','Conteo apurado al cierre','no','Doble conteo con dos personas: mismo resultado.'],
+ ['Mano de obra','Personal nuevo sin práctica en gramajes','q','No se verificó todavía: queda para el próximo ciclo.'],
+ ['Método','No hay gramaje escrito por formato','root','Cada persona dijo un peso distinto para el ¼: de 220 a 300 g.'],
+ ['Método','La merma se tira sin anotar','ok','Planilla de descarte de dos semanas: $ 55.000 por mes.'],
+ ['Método','Recepción sin control remito vs. físico','no','6 recepciones controladas: coincidían.'],
+ ['Máquina','Balanza lejos del puesto de armado','ok','En el pico no se pesa ningún pote.'],
+ ['Máquina','Porcionadores de distinto tamaño','ok','Hay 3 tamaños de porcionador en uso.'],
+ ['Máquina','Costo estándar desactualizado en el sistema','no','Comparado con las facturas: al día.'],
+ ['Material','Baldes con fondo cristalizado que se descartan','ok','Es parte de la merma sin anotar.'],
+ ['Material','Baldes del proveedor con menos peso','no','10 baldes cerrados pesados: dentro de tolerancia.'],
+ ['Medio ambiente','En el pico se arma rápido y sin pesar','ok','En el pico los potes salen más pesados.'],
+ ['Medio ambiente','Hurto','no','Lo confirmado ya explica el 96 %. Sin evidencia.'],
+ ['Medición','Baldes abiertos contados «a ojo»','ok','Errores para los dos lados: ruido de ± $ 10.000.'],
+ ['Medición','La brecha se mira una vez por mes','ok','Nadie podía ver el problema a tiempo.']];
+const FAMS=['Mano de obra','Método','Máquina','Material','Medio ambiente','Medición'];
+R[2]=()=>shell(2,'abrir todas las causas posibles antes de elegir una; lo votado es solo una sospecha.',`
+ <p>Problema en la cabeza del pescado, con su dato. En la reunión, cada persona elige sus <b>3 causas más probables</b>. Hacé clic para votar (hasta 3). Después pasá a la etapa 4 para verificarlas.</p>
+ <div class="headfish">Problema: brecha del helado a granel · faltan $ 240.000 por mes (80 % de la brecha)</div>
+ <div class="fish">${FAMS.map(f=>`<div class="bone"><h3>${f}</h3><ul>${CAUSES.map((c,i)=>c[0]===f?`<li><button type="button" class="chip ${S.votes.has(i)?'voted':''}" data-c="${i}">${c[1]}</button></li>`:'').join('')}</ul></div>`).join('')}</div>
+ <p class="read" id="r2"></p>`);
+function upd2(){document.querySelectorAll('.chip[data-c]').forEach(b=>b.onclick=()=>{const i=+b.dataset.c; if(S.votes.has(i))S.votes.delete(i); else if(S.votes.size<3)S.votes.add(i); S.verified=false; render();});
+ $('#r2').innerHTML=S.votes.size<3?`<b>Votos:</b> ${S.votes.size} de 3. Las causas se escriben como hechos del proceso, nunca como «Fulano».`:`<b>Listo:</b> tus 3 sospechas son ${[...S.votes].map(i=>'«'+CAUSES[i][1]+'»').join(', ')}. Ahora hay que ir a comprobarlas con un dato.`;}
+
+R[3]=()=>{const v=S.verified;return shell(3,'confirmar o descartar cada causa con un dato antes de actuar.',`
+ <p>Para cada causa se hizo una verificación en el lugar (pesar, contar, comparar). ${v?'Así quedó el diagrama:':'Tocá «Verificar» para ver qué mostró cada dato.'}</p>
+ ${v?'':'<div><button class="btn" type="button" id="ver">Verificar todas las causas</button></div>'}
+ ${v?`<div class="fish">${FAMS.map(f=>`<div class="bone"><h3>${f}</h3><ul>${CAUSES.map((c,i)=>c[0]===f?`<li><span class="chip v-${c[2]}">${c[2]==='root'?'★ ':c[2]==='ok'?'✔ ':c[2]==='no'?'✘ ':'? '}${c[1]}${S.votes.has(i)?' · <b>votada</b>':''}<em>${c[3]}</em></span></li>`:'').join('')}</ul></div>`).join('')}</div>
+ <div class="grid2"><div><svg class="chart" id="par2" viewBox="0 0 460 260" role="img" aria-label="Brecha del granel por causa"></svg></div>
+ <div style="display:grid;gap:10px;align-content:start"><div class="field"><label for="g1">Probá: ¿cuánto pesa en promedio un ¼ kg servido? (gramos)</label><input type="range" id="g1" min="250" max="320" value="285"><span class="num" id="g1v"></span></div><p class="read" id="r3b"></p></div></div>
+ <p class="read" id="r3"></p>`:''}`);};
+function upd3(){ if(!S.verified){$('#ver').onclick=()=>{S.verified=true;render();};return;}
+ pareto($('#par2'),[['Sobre-porcionado',150000],['Merma sin anotar',55000],['Degustación y consumo',25000],['Conteo a ojo',10000]]);
+ const voted=[...S.votes]; const hits=voted.filter(i=>['ok','root'].includes(CAUSES[i][2])).length; const miss=voted.filter(i=>CAUSES[i][2]==='no').map(i=>'«'+CAUSES[i][1]+'»');
+ $('#r3').innerHTML=voted.length?`<b>Tus votos:</b> ${hits} de ${voted.length} se confirmaron con datos.${miss.length?' Se descartaron '+miss.join(', ')+': sin verificar, habrías corregido lo que no era.':''} <b>Tres causas explican el 96 %</b> de la brecha del granel.`:`<b>Hallazgo:</b> tres causas explican el 96 % de la brecha del granel. Volvé a la etapa 3 y votá para comparar tus sospechas con los datos.`;
+ const g=$('#g1'); const f=()=>{const x=+g.value; $('#g1v').textContent=x+' g'; const ex=x-250; $('#r3b').innerHTML= ex<=0?'<b>En el estándar:</b> el ¼ pesa lo que se cobra.':`<b>${x} g en vez de 250 g</b> es servir un ${Math.round(ex/250*100)} % de más: regalás <b>un pote de cada ${Math.round(250/ex*10)/10}</b>.`;}; g.oninput=f; f();}
+
+const WHY=[
+ ['¿Por qué faltan kilos de granel?',['Porque el personal es descuidado','Porque se sirve más de lo que se cobra'],1,'Dato: el ¼ sale con 285 g.'],
+ ['¿Por qué se sirve de más?',['Porque se arma a ojo y «con colmo»','Porque los clientes se quejan'],0,'Dato: pesaje y observación en el mostrador.'],
+ ['¿Por qué a ojo?',['Porque no les importa','Porque la balanza está en la caja, lejos del armado'],1,'Dato: en el pico no se pesa ningún pote.'],
+ ['¿Por qué no hay una referencia en el puesto?',['Porque no hay gramaje escrito ni porcionadores definidos','Porque falta capacitación'],0,'Dato: cada persona dijo un peso distinto, de 220 a 300 g.'],
+ ['¿Por qué no existe?',['Porque nunca se fijó un estándar de porcionado ni un control','Porque el encargado no controla'],0,'Dato: no hay hoja de estándar.']];
+R[4]=()=>{let html='',open=true;WHY.forEach((w,i)=>{if(!open)return; const a=S.why[i];
+ html+=`<div class="lvl"><b>${i+1}. ${w[0]}</b><div class="opts">${w[1].map((o,j)=>`<button type="button" class="chip ${a===j?(j===w[2]?'v-ok':'v-root'):''}" data-w="${i}" data-o="${j}">${o}</button>`).join('')}</div>${a===null?'':a===w[2]?`<p class="msg ok">✔ ${w[3]}</p>`:`<p class="msg bad">✘ Esa respuesta frena en una persona o en una opinión. Buscá qué en el proceso lo permite.</p>`}</div>`;
+ if(a!==w[2])open=false;});
+ const done=S.why.every((a,i)=>a===WHY[i][2]);
+ return shell(4,'bajar de un síntoma a una causa que se pueda cambiar; la causa raíz nunca es una persona.',`<p>Elegí, en cada nivel, la respuesta que se apoya en un hecho del proceso.</p><div class="why">${html}</div>${done?'<p class="read"><b>Causa raíz:</b> falta un <b>estándar de porcionado en el puesto de armado</b> (gramaje, herramienta y control). Se puede cambiar sin gran inversión y no culpa a nadie.</p>':''}`);};
+function upd4(){document.querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>{const i=+b.dataset.w;S.why[i]=+b.dataset.o;for(let k=i+1;k<5;k++)S.why[k]=null;render();});}
+
+const CMS=[
+ ['Tabla de gramajes por formato a la vista, tolerancia ± 10 g',true,'Ataca la causa raíz: no había gramaje escrito.'],
+ ['Balanza en el puesto: el ¼ y el ½ se pesan siempre',true,'Ataca «balanza lejos». Hace imposible servir a ojo.'],
+ ['Un porcionador por formato',true,'Ataca «porcionadores de distinto tamaño».'],
+ ['Planilla de descarte y usar primero lo que entró primero',true,'Ataca la merma sin anotar.'],
+ ['Hasta 2 degustaciones por cliente y ticket interno de consumo',true,'Ataca degustaciones y consumo sin registro.'],
+ ['En el conteo, pesar los baldes abiertos',true,'Ataca el conteo a ojo (el ruido del número).'],
+ ['Pedirle al personal que sirva menos',false,'Depende de la memoria y apunta a las personas. Sin cambiar el puesto, vuelve a pasar.'],
+ ['Cambiar de proveedor',false,'El peso de los baldes se verificó y estaba bien. No ataca ninguna causa confirmada.'],
+ ['Poner una cámara de seguridad',false,'El hurto se descartó con datos. Gastarías en lo que no era.']];
+R[5]=()=>{const good=CMS.filter(c=>c[1]).length, sel=[...S.cm], okSel=sel.filter(i=>CMS[i][1]).length, badSel=sel.filter(i=>!CMS[i][1]).length;
+ return shell(5,'elegir contramedidas que ataquen causas confirmadas, preferiblemente las que hacen imposible el error.',`
+ <p>Marcá las contramedidas que irían a la casilla 5 del A3. Cada una tiene que atacar una causa de la casilla 4.</p>
+ <div class="cm">${CMS.map((c,i)=>`<label for="cm${i}"><input type="checkbox" id="cm${i}" data-m="${i}" ${S.cm.has(i)?'checked':''}><span>${c[0]}${S.cm.has(i)?`<span class="fb" style="color:var(${c[1]?'--ok':'--bad'})">${c[1]?'✔ ':'✘ '}${c[2]}</span>`:''}</span></label>`).join('')}</div>
+ <p class="read"><b>Tu A3:</b> ${okSel} de ${good} contramedidas correctas${badSel?` y ${badSel} que no atacan ninguna causa confirmada (sacalas)`:''}. ${okSel===good&&!badSel?'<b>Casilla 5 completa.</b> Objetivo de la casilla 3: brecha del granel de $ 240.000 a $ 50.000 o menos en dos meses, y ¼ dentro de 250 g ± 10 g.':''}</p>`);};
+function upd5(){document.querySelectorAll('[data-m]').forEach(b=>b.onchange=()=>{const i=+b.dataset.m; b.checked?S.cm.add(i):S.cm.delete(i); render();});}
+
+const PLAN=[['Tabla de gramajes y tolerancias','Franquiciado y encargado','Sem. 1','Sem. 1'],['Balanza y porcionadores en el puesto','Franquiciado','Sem. 1','Sem. 1'],['Planilla de descarte y regla de rotación','Responsable A2','Sem. 1','Sem. 1'],['Regla de degustación y ticket interno','Encargado','Sem. 1','Sem. 1'],['Prueba en el turno de mayor demanda (10 servicios pesados)','Encargado de turno','Sem. 2','Sem. 3'],['Extender a todos los turnos y capacitar','Encargado','Sem. 4','Sem. 4'],['Hoja de estándar de porcionado (H12) en el puesto','Encargado','Sem. 4','Sem. 5'],['Revisión contra la meta','Equipo y facilitador','Cierre mes 1','Cierre mes 2']];
+const EST=['Pendiente','En curso','Completa'];
+R[6]=()=>{if(!S.plan)S.plan=PLAN.map(()=>0);const done=S.plan.filter(x=>x===2).length;
+ return shell(6,'que cada contramedida tenga dueño, fecha y seguimiento; una acción sin nombre y sin fecha no existe.',`
+ <p>Las contramedidas del A3 se cargan en el plan de acción (H8) y se repasan en la reunión diaria. Actualizá el estado como si fuera el pizarrón.</p>
+ <div style="display:grid;gap:6px"><div class="bar"><i style="width:${done/PLAN.length*100}%"></i></div><span class="num">${done} de ${PLAN.length} acciones completas</span></div>
+ <div class="tw"><table><thead><tr><th>#</th><th>Acción</th><th>Responsable</th><th>Inicio</th><th>Fin</th><th>Estado</th></tr></thead><tbody>
+ ${PLAN.map((p,i)=>`<tr><td class="num">${i+1}</td><td>${p[0]}</td><td>${p[1]}</td><td>${p[2]}</td><td>${p[3]}</td><td><label class="sr" for="pl${i}" hidden>Estado</label><select id="pl${i}" data-p="${i}">${EST.map((e,j)=>`<option value="${j}" ${S.plan[i]===j?'selected':''}>${e}</option>`).join('')}</select> <span class="pill ${['p-pen','p-run','p-ok'][S.plan[i]]}">${EST[S.plan[i]]}</span></td></tr>`).join('')}
+ </tbody></table></div>
+ <p class="read">${done===PLAN.length?'<b>Plan cerrado.</b> Ahora se mide si funcionó (etapa 8) y se abre el próximo ciclo: postres y bombones.':'<b>En la reunión diaria</b> se pregunta por cada acción en curso: ¿qué falta y quién la destraba?'}</p>`);};
+function upd6(){document.querySelectorAll('[data-p]').forEach(s=>s.onchange=()=>{S.plan[+s.dataset.p]=+s.value;render();});}
+
+function model(){const porc=Math.max(0,150000*(S.gram-250)/35), merma=55000*(1-S.merma/100), degu=25000*(1-S.degu/100), cont=S.pesar?0:10000;
+ const gran=porc+merma+degu+cont, otras=60000, tot=gran+otras; const cmvR=S.ventas*0.40+tot; const res=S.ventas-cmvR-S.gastos; return {porc,merma,degu,cont,gran,tot,res};}
+R[7]=()=>shell(7,'verificar con el mismo indicador del problema y ver cuánto vuelve a la ganancia.',`
+ <p>Mové los controles según cómo quedó la franquicia después del plan. El modelo recalcula la brecha y el resultado del mes (venta $ 10.000.000, CMV estándar 40 %, gastos $ 4.800.000, otras familias $ 60.000 de brecha).</p>
+ <div class="grid2"><div style="display:grid;gap:12px">
+  <div class="field"><label for="m1">Gramaje promedio del ¼ kg: <span class="num" id="m1v"></span></label><input type="range" id="m1" min="250" max="300" value="${S.gram}"></div>
+  <div class="field"><label for="m2">Merma que se evita al registrar y rotar: <span class="num" id="m2v"></span></label><input type="range" id="m2" min="0" max="100" value="${S.merma}"></div>
+  <div class="field"><label for="m3">Degustación y consumo bajo control: <span class="num" id="m3v"></span></label><input type="range" id="m3" min="0" max="100" value="${S.degu}"></div>
+  <label for="m4" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="m4" ${S.pesar?'checked':''}> Los baldes abiertos se pesan en el conteo</label>
+  <div><button class="btn ghost" type="button" id="m5">Cargar el resultado del caso (mes 2)</button></div>
+ </div><div style="display:grid;gap:10px;align-content:start">
+  <div class="kpis"><div class="kpi" id="q1"><small>Brecha del granel</small><strong></strong></div><div class="kpi" id="q2"><small>Brecha total / venta</small><strong></strong></div><div class="kpi" id="q3"><small>Resultado del mes</small><strong></strong></div><div class="kpi ok" id="q4"><small>Recuperado vs. inicio</small><strong></strong></div></div>
+  <svg class="chart" id="bars" viewBox="0 0 460 150" role="img" aria-label="Brecha del granel por causa, antes y ahora"></svg>
+  <p class="read" id="r7"></p></div></div>`);
+function upd7(){const set=()=>{S.gram=+$('#m1').value;S.merma=+$('#m2').value;S.degu=+$('#m3').value;S.pesar=$('#m4').checked;draw7();};
+ ['#m1','#m2','#m3'].forEach(s=>$(s).oninput=set); $('#m4').onchange=set;
+ $('#m5').onclick=()=>{S.gram=255;S.merma=70;S.degu=80;S.pesar=true;render();}; draw7();}
+function draw7(){const m=model(); $('#m1v').textContent=S.gram+' g'; $('#m2v').textContent=S.merma+' %'; $('#m3v').textContent=S.degu+' %';
+ const meta=m.gran<=50000;
+ $('#q1 strong').textContent=fmt(m.gran); $('#q1').className='kpi '+(meta?'ok':'bad');
+ $('#q2 strong').textContent=pct(m.tot/S.ventas*100); $('#q3 strong').textContent=fmt(m.res); $('#q4 strong').textContent=fmt(m.res-900000);
+ const rows=[['Sobre-porcionado',150000,m.porc],['Merma',55000,m.merma],['Degustación',25000,m.degu],['Conteo a ojo',10000,m.cont]];
+ let o='';rows.forEach((r,i)=>{const y=10+i*34, w1=230*r[1]/150000, w2=230*r[2]/150000;
+  o+=`<text x="0" y="${y+12}" font-size="12">${r[0]}</text><rect x="130" y="${y}" width="${w1}" height="10" fill="var(--line)" rx="2"></rect><rect x="130" y="${y+12}" width="${Math.max(0,w2)}" height="10" fill="${r[2]<r[1]*0.5?'var(--ok)':'var(--bad)'}" rx="2"></rect><text x="${136+Math.max(w1,w2)}" y="${y+21}" font-size="11" fill="var(--mut)">${fmt(r[2])}</text>`;});
+ o+=`<text x="130" y="146" font-size="10.5" fill="var(--mut)">gris: antes · color: ahora</text>`; $('#bars').innerHTML=o;
+ $('#r7').innerHTML=meta?`<b>Meta cumplida</b> (granel ≤ $ 50.000): adoptá y estandarizá con la hoja H12, sumá el pesaje al azar al chequeo de apertura (H14) y abrí el próximo ciclo.`:`<b>Todavía no:</b> la meta es una brecha del granel de $ 50.000 o menos. Mirá qué barra sigue roja: ahí falta la contramedida o la disciplina para sostenerla.`;}
+
+const U=[upd0,upd1,upd2,upd3,upd4,upd5,upd6,upd7];
+function render(){ $('#stage').innerHTML=R[S.step](); bindNav(); U[S.step]();
+ if(S.step===0) document.querySelectorAll('#stage input').forEach(inp=>inp.oninput=()=>{S[inp.id.slice(2)]=+inp.value||0;upd0();});
+ if(S.step===1) document.querySelectorAll('#stage input').forEach(inp=>inp.oninput=upd1);}
+rail(); render();
+</script>
+
+</body></html>
