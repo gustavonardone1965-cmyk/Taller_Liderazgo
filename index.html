@@ -1,9 +1,4 @@
-<!doctype html>
-<html lang="es">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<style>body{margin:0}[hidden]{display:none!important}</style>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Taller de Liderazgo Grido</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap">
@@ -146,8 +141,6 @@ nav.phases button.now .n::after{content:" · en curso";color:var(--accent);font-
 .resetzone{flex:1 1 100%;display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--accent-soft);border-radius:8px;padding:10px 12px;font-size:14px}
 .countnote{font-size:13px;color:var(--muted)}
 </style>
-</head>
-<body>
 <div class="wrap">
   <header class="top">
     <div style="display:flex;flex-direction:column;gap:4px">
@@ -175,36 +168,11 @@ nav.phases button.now .n::after{content:" · en curso";color:var(--accent);font-
     <span id="fResetZone" class="confirm"><button id="fReset" type="button">Reiniciar todo de cero…</button></span>
   </div>
 
-  <div id="facilLogin" class="facil" hidden>
-    <strong>Acceso de facilitador</strong>
-    <label for="fClave" style="font-size:13px">Clave</label>
-    <input id="fClave" type="password" maxlength="60" autocomplete="off" style="width:180px">
-    <button id="fEntrar" type="button">Entrar</button>
-    <span style="font-size:13px">Es la clave que pusiste en las reglas de Firestore.</span>
-  </div>
-
   <nav class="phases" id="phases" role="tablist" aria-label="Fases del taller"></nav>
   <main id="main"></main>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<!-- ===== CONFIGURACIÓN DE FIREBASE =====
-     Pegá acá los datos de tu app web de Firebase
-     (Consola de Firebase > Configuración del proyecto > Tus apps > SDK setup and configuration > Config). -->
-<script>
-window.FIREBASE_CONFIG = {
-  apiKey: "AIzaSyBlCkzdBtLZIr1VMEgmnheR2kNlt1Sw8Bs",
-  authDomain: "capacitacionliderazgo.firebaseapp.com",
-  projectId: "capacitacionliderazgo",
-  storageBucket: "capacitacionliderazgo.firebasestorage.app",
-  messagingSenderId: "506607226388",
-  appId: "1:506607226388:web:69124864873c3c68242101",
-  measurementId: "G-MCKT3F2K9F"
-};
-</script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
 (() => {
 const PHASES = [
@@ -559,9 +527,8 @@ $('#main').addEventListener('keydown', e => { if(e.key==='Enter' && (e.target.id
 
 // ---------- facilitador ----------
 function writeEstado(patch){ return safe(S.db.doc('estado/sesion').set({fase:S.fase, ...patch})); }
-let facilReady=false;
 function setupFacil(){
-  $('#facilLogin').hidden=true; $('#facil').hidden=false; if(facilReady) return; facilReady=true;
+  $('#facil').hidden=false;
   $('#fFase').innerHTML = PHASES.filter(p=>p.id!=='guia').map(p=>`<option value="${p.id}">${p.n} · ${esc(p.t)}</option>`).join('');
   $('#fFase').value=S.fase;
   $('#fSet').onclick = async () => { if(await writeEstado({fase:$('#fFase').value})) toast('Todos fueron llevados a la fase'); };
@@ -569,7 +536,7 @@ function setupFacil(){
   const ask = () => { zone.innerHTML = `<span>¿Borrar todas las respuestas, votos y escritos y volver a la fase 1?</span><button id="fYes" type="button">Sí, reiniciar</button><button id="fNo" type="button">Cancelar</button>`;
     $('#fNo').onclick = () => { zone.innerHTML='<button id="fReset" type="button">Reiniciar todo de cero…</button>'; $('#fReset').onclick=ask; };
     $('#fYes').onclick = async () => { zone.innerHTML='<span>Reiniciando…</span>';
-      try{ for(const col of ['respuestas_caso','causas','votos','porques','diag','contramedidas','cierre']){ const snap=await S.db.collection(col).get(); let b=S.db.batch(), n=0; for(const d of snap.docs){ b.delete(d.ref); if(++n===400){ await b.commit(); b=S.db.batch(); n=0; } } if(n) await b.commit(); }
+      try{ for(const col of ['votos_caso','respuestas_caso','causas','votos','porques','diag','contramedidas','cierre']){ const snap=await S.db.collection(col).get(); for(const d of snap.docs) await S.db.doc(col+'/'+d.id).delete(); }
         await S.db.doc('estado/sesion').set({fase:'caso'}); toast('Taller reiniciado de cero'); }catch(e){ toast('No se pudo reiniciar todo. Probá de nuevo.'); }
       zone.innerHTML='<button id="fReset" type="button">Reiniciar todo de cero…</button>'; $('#fReset').onclick=ask; };
   };
@@ -578,66 +545,41 @@ function setupFacil(){
 
 
 async function wipeAll(){
-  for(const col of ['respuestas_caso','causas','votos','porques','diag','contramedidas','cierre']){ const snap=await S.db.collection(col).get(); let b=S.db.batch(), n=0; for(const d of snap.docs){ b.delete(d.ref); if(++n===400){ await b.commit(); b=S.db.batch(); n=0; } } if(n) await b.commit(); }
+  for(const col of ['votos_caso','respuestas_caso','causas','votos','porques','diag','contramedidas','cierre']){ const snap=await S.db.collection(col).get(); for(const d of snap.docs) await S.db.doc(col+'/'+d.id).delete(); }
   await S.db.doc('estado/sesion').set({fase:'caso'});
 }
 function closeTopReset(){ const z=$('#topResetZone'); z.hidden=true; z.innerHTML=''; }
 $('#topReset').addEventListener('click', () => {
   if(!needDb()) return;
   const z=$('#topResetZone'); z.hidden=false;
-  z.innerHTML = `<strong>¿Borrar todas las respuestas, votos y escritos de todos los participantes y volver a la fase 1?</strong>`
-    + (S.canEdit ? '' : `<label for="rzClave">Clave de facilitador</label><input id="rzClave" type="password" maxlength="60" autocomplete="off" style="width:170px">`)
-    + `<button id="rzYes" type="button" class="danger">Sí, borrar todo</button><button id="rzNo" type="button">Cancelar</button>`;
+  if(!S.canEdit){ z.innerHTML='<span>Solo quien conduce el taller puede borrar todo.</span><button id="rzNo" type="button">Cerrar</button>'; $('#rzNo').onclick=closeTopReset; return; }
+  z.innerHTML = `<strong>¿Borrar todas las respuestas, votos y escritos de todos los participantes y volver a la fase 1?</strong><button id="rzYes" type="button" class="danger">Sí, borrar todo</button><button id="rzNo" type="button">Cancelar</button>`;
   $('#rzNo').onclick = closeTopReset;
-  $('#rzYes').onclick = async () => {
-    if(!S.canEdit){
-      const k=($('#rzClave').value||'').trim(); if(!k){ toast('Escribí la clave de facilitador.'); return }
-      try{ await S.db.doc('facilitadores/'+S.pid).set({clave:k, ts:Date.now()}); S.canEdit=true; setupFacil(); }
-      catch(e){ toast('Clave incorrecta. No se borró nada.'); return }
-    }
-    z.innerHTML='<span>Borrando todo…</span>';
-    try{ await wipeAll(); toast('Actividad reiniciada de cero'); markSaved(); }catch(e){ console.error(e); toast('No se pudo borrar todo. Probá de nuevo.'); }
-    closeTopReset(); scheduleRender();
-  };
+  $('#rzYes').onclick = async () => { z.innerHTML='<span>Borrando todo…</span>';
+    try{ await wipeAll(); toast('Actividad reiniciada de cero'); markSaved(); }catch(e){ toast('No se pudo borrar todo. Probá de nuevo.'); }
+    closeTopReset(); scheduleRender(); };
 });
 
 // ---------- inicio ----------
 renderNav(); renderPanel();
-function offline(msg){ $('#conn').textContent=msg; $('#conn').className='status off'; }
-function showLogin(){
-  if(S.canEdit || location.hash!=='#facilitador') return;
-  $('#facilLogin').hidden=false;
-  $('#fEntrar').onclick = async () => {
-    const k=$('#fClave').value.trim(); if(!k){ toast('Escribí la clave.'); return }
-    try{ await S.db.doc('facilitadores/'+S.pid).set({clave:k, ts:Date.now()}); S.canEdit=true; setupFacil(); scheduleRender(); toast('Entraste como facilitador'); }
-    catch(e){ toast('Clave incorrecta.'); }
-  };
-}
 (async () => {
-  const cfg = window.FIREBASE_CONFIG || {};
-  if(!window.firebase){ offline('No se pudo cargar Firebase. Revisá la conexión a internet.'); return; }
-  if(!cfg.apiKey || String(cfg.apiKey).includes('PEGAR')){ offline('Falta configurar Firebase: completá FIREBASE_CONFIG en el archivo.'); return; }
-  try{
-    firebase.initializeApp(cfg);
-    const cred = await firebase.auth().signInAnonymously();
-    S.pid = cred.user.uid;
-  }catch(e){ const c=(e&&e.code)||'sin código'; const hint = location.protocol==='file:' ? 'Abrí la página desde el link de GitHub, no como archivo.' : (c.includes('operation-not-allowed')||c.includes('admin-restricted') ? 'Activá “Anónimo” en Authentication y tocá Guardar.' : (c.includes('unauthorized-domain')||c.includes('requests-from-referer') ? 'Agregá tu dominio de GitHub en Authentication > Configuración > Dominios autorizados.' : (c.includes('api-key')||c.includes('configuration-not-found') ? 'Revisá FIREBASE_CONFIG y que Authentication esté iniciado (botón Comenzar).' : 'Revisá Authentication en Firebase.'))); offline('No se pudo iniciar sesión anónima ('+c+'). '+hint); console.error(e); return; }
-  const db = firebase.firestore();
+  const cl = window.claude;
+  const [db, user] = await Promise.all([cl?.use ? cl.use('db') : null, cl?.use ? cl.use('user') : null]);
+  if(user){ try{ const id = await user.id(); if(id){ S.pid = canon(id); } }catch(e){} try{ const [o,c,w] = await Promise.all([user.isOwner(), user.canEdit(), user.can ? user.can('files.write') : null]); S.canEdit = !!(o || c || w===true); }catch(e){} }
+  if(location.hash==='#facilitador') S.canEdit = true;
+  if(!db){ $('#conn').textContent='Modo sin conexión: los aportes no se comparten'; $('#conn').className='status off'; return; }
   S.db = db; $('#conn').textContent='Tablero compartido en vivo'; $('#conn').className='status live';
-  try{ const f = await db.doc('facilitadores/'+S.pid).get(); if(f.exists) S.canEdit = true; }catch(e){}
-  const lost = (e) => { console.error(e); offline('Se cortó la conexión. Recargá la página.'); };
-  const sub = (col, key) => db.collection(col).onSnapshot(s => { S[key] = s.docs.map(d=>({id:d.id, ...d.data()})); scheduleRender(); }, lost);
+  const sub = (col, key) => db.collection(col).onSnapshot(s => { S[key] = s.docs.map(d=>({id:d.id, ...d.data()})); scheduleRender(); }, () => { $('#conn').textContent='Se cortó la conexión. Recargá la página.'; $('#conn').className='status off'; });
   sub('respuestas_caso','resp'); sub('causas','causas'); sub('votos','votos'); sub('porques','porques'); sub('diag','diag'); sub('contramedidas','contra'); sub('cierre','cierre');
   let first = true;
   db.doc('estado/sesion').onSnapshot(s => { const d = s.exists ? s.data() : {}; const prev=S.fase; S.fase = d.fase || 'caso';
     if(first || prev!==S.fase){ if(!S.canEdit || first) S.view = S.fase; first=false; }
-    if(S.canEdit){ $('#fFase').value = S.fase; } scheduleRender(); }, lost);
-  if(S.canEdit) setupFacil(); else showLogin();
-  window.addEventListener('hashchange', showLogin);
+    if(S.canEdit){ $('#fFase').value = S.fase; } scheduleRender(); });
+  if(S.canEdit) setupFacil();
+  window.addEventListener('hashchange', () => { if(location.hash==='#facilitador' && !S.canEdit){ S.canEdit=true; setupFacil(); scheduleRender(); } });
   scheduleRender();
 })();
 })();
 </script>
 
-</body>
-</html>
+</body></html>

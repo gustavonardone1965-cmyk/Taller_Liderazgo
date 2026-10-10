@@ -134,6 +134,11 @@ nav.phases button.now .n::after{content:" · en curso";color:var(--accent);font-
 <style>
 .savebox{display:flex;align-items:center;gap:8px;margin-left:auto}
 .savebox .when{font-size:13px;color:var(--muted)}
+.howto{background:var(--blue-soft);border-radius:8px;padding:10px 14px;display:flex;flex-direction:column;gap:4px;font-size:14px}
+.howto ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:3px}
+.stepnav{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:14px}
+.danger{border-color:#B3261E;color:#B3261E;background:transparent}
+.resetzone{flex:1 1 100%;display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--accent-soft);border-radius:8px;padding:10px 12px;font-size:14px}
 .countnote{font-size:13px;color:var(--muted)}
 </style>
 <div class="wrap">
@@ -150,7 +155,8 @@ nav.phases button.now .n::after{content:" · en curso";color:var(--accent);font-
 
   <div class="idbar" aria-label="Tu identificación">
     <span class="muted" style="font-size:13px">Tus aportes son anónimos. Solo vos podés borrar los tuyos.</span>
-    <span class="savebox"><span class="when" id="savedAt">Sin cambios grabados</span><button class="primary" id="saveAll" type="button">Grabar cambios</button></span>
+    <span class="savebox"><span class="when" id="savedAt">Sin cambios grabados</span><button class="primary" id="saveAll" type="button">Grabar cambios</button><button id="topReset" type="button" class="danger">Borrar todo y reiniciar</button></span>
+    <div id="topResetZone" class="resetzone" hidden></div>
   </div>
 
   <div id="facil" class="facil" hidden>
@@ -179,14 +185,14 @@ const PHASES = [
  {id:'cierre', n:'7', t:'Alerta temprana'},
 ];
 const CATS = [
- {id:'personas', t:'Personas', c:'Prototipicidad', q:'¿El equipo de proyecto lo ve como “uno de nosotros”?', side:'a'},
+ {id:'personas', t:'Personas', c:'Idiosincrasia compartida', q:'¿El equipo de proyecto lo ve como “uno de los nuestros”?', side:'a'},
  {id:'metodo', t:'Método', c:'Justicia procedimental', q:'¿Cómo define plazos y prioridades? ¿Da voz y explica?', side:'a'},
  {id:'gestion', t:'Gestión y medición', c:'Poder “sobre” el grupo', q:'¿Cómo controla el avance? ¿Premia, expone o sanciona?', side:'a'},
  {id:'entorno', t:'Entorno', c:'Relaciones intergrupales', q:'¿Qué áreas se ven como “ellos”? ¿Planta, abastecimiento, marketing, la dirección?', side:'b'},
  {id:'recursos', t:'Recursos', c:'Promoción del grupo', q:'Ante atrasos o faltantes, ¿defiende al equipo o lo culpa?', side:'b'},
- {id:'comunicacion', t:'Comunicación', c:'Emprendimiento e impresariado', q:'¿Hay un relato común del lanzamiento y rituales que unan?', side:'b'},
+ {id:'comunicacion', t:'Comunicación', c:'Relato y mística de equipo', q:'¿Hay un relato común del lanzamiento y rituales que unan?', side:'b'},
 ];
-const CONCEPTS = ['Prototipicidad (ser uno de nosotros)','Promoción (hacerlo por nosotros)','Emprendimiento (construir el nosotros)','Impresariado (hacer que el nosotros importe)','Poder “sobre” vs “a través de”','Justicia procedimental','Relaciones intergrupales (nosotros/ellos)','Liderazgo co-construido con el equipo','El líder como mejor ejemplo del grupo','Un nosotros más amplio: todas las áreas','Sesgo de atribución al líder'];
+const CONCEPTS = ['Idiosincrasia compartida (ser uno de los nuestros)','Promoción (hacerlo por nosotros)','Emprendimiento (construir el nosotros)','Mística de equipo (hacer que el nosotros se viva)','Poder “sobre” vs “a través de”','Justicia procedimental','Relaciones intergrupales (nosotros/ellos)','Liderazgo co-construido con el equipo','El líder como mejor ejemplo del grupo','Un nosotros más amplio: todas las áreas','Sesgo de atribución al líder'];
 const STEPS5R = [
  {id:'readying', t:'Readying', d:'Preparar: legitimar el proceso y el rol del líder'},
  {id:'reflecting', t:'Reflecting', d:'Reflexionar: ¿quiénes somos y qué valoramos?'},
@@ -196,14 +202,15 @@ const STEPS5R = [
 ];
 const POWER = ['Recompensa','Coercitivo','Legítimo','Experto','Referente'];
 const DIMS = [
- {id:'d1', t:'Prototipicidad', q:'¿El líder representa lo que somos como equipo?'},
+ {id:'d1', t:'Idiosincrasia compartida', q:'¿El líder representa lo que somos como equipo?'},
  {id:'d2', t:'Promoción', q:'¿Defiende los intereses del equipo?'},
  {id:'d3', t:'Emprendimiento', q:'¿Nos hace sentir parte de un mismo grupo?'},
- {id:'d4', t:'Impresariado', q:'¿Crea espacios y actividades que nos unen?'},
+ {id:'d4', t:'Mística de equipo', q:'¿Crea espacios y actividades que nos unen?'},
 ];
 
 const SIGNALS = ['Se dice “él” o “ellos” en vez de “nosotros”','Los atrasos se conocen tarde: nadie avisa','Se cumple lo mínimo, sin iniciativa','El equipo consulta a un referente informal','Las áreas se culpan entre sí','Piden salir del proyecto o faltan a las reuniones'];
 const MAX_VOTES = 3;
+const WHY_EX = ['Ej.: porque el líder expone en público a quien se atrasa','Ej.: porque quiere asegurar la fecha con control','Ej.: porque no siente que el equipo lo siga','Ej.: porque no se ganó el lugar de “uno de los nuestros”','(opcional)'];
 const RESP = [
  {id:'r1', t:'El líder quedó afuera del equipo: hay que sumarlo al “nosotros” antes de exigir la fecha'},
  {id:'r2', t:'La fecha es del líder y no del equipo: hay que construir el compromiso con todas las áreas'},
@@ -229,19 +236,28 @@ let localPid = store.get('tl_pid'); if(!localPid){ localPid = 'p'+Math.random().
 S.pid = localPid;
 
 
+function doneFase(id){
+  const p=S.pid;
+  return {caso:()=>S.resp.some(r=>r.id===p), ishikawa:()=>S.causas.some(c=>c.pid===p), votacion:()=>S.votos.some(v=>v.pid===p),
+    porques:()=>S.porques.some(x=>x.id===p), diagnostico:()=>S.diag.some(x=>x.id===p), a3:()=>S.contra.some(c=>c.pid===p), cierre:()=>S.cierre.some(x=>x.id===p)}[id]?.()||false;
+}
+function stepNav(){
+  const i=PHASES.findIndex(p=>p.id===S.view); const prev=PHASES[i-1], next=PHASES[i+1];
+  return `<div class="stepnav">${prev?`<button type="button" data-goto="${prev.id}">← ${esc(prev.t)}</button>`:'<span></span>'}<span class="muted" style="font-size:13px">Pestaña ${i+1} de ${PHASES.length}${doneFase(S.view)?' · completada ✓':''}</span>${next?`<button type="button" class="primary" data-goto="${next.id}">Siguiente: ${esc(next.t)} →</button>`:'<span class="tag">Fin del taller. ¡Gracias!</span>'}</div>`;
+}
 function renderNav(){
   const nav = $('#phases'); nav.innerHTML='';
   PHASES.forEach(ph => {
     const b=document.createElement('button'); b.type='button'; b.setAttribute('role','tab');
     b.setAttribute('aria-selected', S.view===ph.id ? 'true':'false');
     if(S.fase===ph.id) b.classList.add('now');
-    b.innerHTML = `<span class="n">${ph.id==='guia'?'Para quien conduce':'Fase '+ph.n}</span><span class="t">${esc(ph.t)}</span>`;
+    b.innerHTML = `<span class="n">${'Fase '+ph.n}${doneFase(ph.id)?' ✓':''}</span><span class="t">${esc(ph.t)}</span>`;
     b.onclick = () => { S.view=ph.id; renderNav(); renderPanel(); };
     nav.appendChild(b);
   });
 }
 function consigna(eyebrow, title, steps, keyTitle, keyText){
-  return `<section class="consigna"><div style="display:flex;flex-direction:column;gap:8px"><span class="eyebrow">${eyebrow}</span><h2>${title}</h2><ol style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px">${steps.map(s=>`<li>${s}</li>`).join('')}</ol></div><aside class="clave"><span class="eyebrow">Concepto clave</span><strong>${keyTitle}</strong><p class="muted" style="font-size:14px">${keyText}</p></aside></section>`;
+  return `<section class="consigna"><div style="display:flex;flex-direction:column;gap:8px"><span class="eyebrow">${eyebrow}</span><h2>${title}</h2><div class="howto"><strong>Cómo completar esta pestaña</strong><ol>${steps.map(s=>`<li>${s}</li>`).join('')}</ol></div></div><aside class="clave"><span class="eyebrow">Concepto clave</span><strong>${keyTitle}</strong><p class="muted" style="font-size:14px">${keyText}</p></aside></section>`;
 }
 function bars(items){
   const max = Math.max(1, ...items.map(i=>i.v));
@@ -285,9 +301,9 @@ function note(c){ return `<div class="note"><span>${esc(c.texto)}</span>${c.pid=
 const PANELS = {
 caso(){
   return consigna('Fase 1','El caso: “El lanzamiento que no llega a tiempo”',[
-    'Leé el caso en silencio.',
-    'En plenario: ¿qué está en juego para el negocio si se pierde la fecha? ¿Y para el equipo?',
-    'Respondé la pregunta del caso: elegí una de las 5 opciones o escribí la tuya en “Otra”.'],
+    'Leé el caso de la izquierda.',
+    'En <b>Tu respuesta</b> (abajo) marcá una de las 5 opciones. Si ninguna te convence, marcá <b>Otra</b> y escribí la tuya en el cuadro de texto.',
+    'Tocá <b>Grabar mi respuesta</b>. A la derecha ves cómo respondió el grupo.'],
     'Del individuo a la relación',
     'Ante un proyecto atrasado, la mirada tradicional busca un culpable: el líder o un área. La mirada de identidad mira la relación: un equipo hace suya una fecha cuando la siente como un compromiso del “nosotros”.')+
   `<div class="grid2">
@@ -309,9 +325,9 @@ ishikawa(){
   const byCat = id => S.causas.filter(c=>c.cat===id).sort((a,b)=>(a.ts||0)-(b.ts||0));
   const bone = c => `<div class="bone ${c.side==='b'?'b':''}"><div><h3>${esc(c.t)}</h3><span class="chip">${esc(c.c)}</span></div><p class="q">${esc(c.q)}</p>${byCat(c.id).map(note).join('')||'<p class="empty">Sin causas todavía.</p>'}</div>`;
   return consigna('Fase 2','Ishikawa colectivo: ¿por qué el proyecto no llega a la fecha?',[
-    'Cada participante carga al menos 2 causas, en la espina que corresponda.',
-    'Escribí hechos observables del caso, no adjetivos (“sanciona en público”, no “es autoritario”).',
-    'Usá la pregunta guía de cada espina: cada una se lee con un concepto clave.'],
+    'En la lista desplegable <b>Espina</b> elegí dónde va tu causa (por ejemplo, «Método · Justicia procedimental»).',
+    'En el cuadro <b>Causa observable</b> escribí un hecho del caso, no un adjetivo: «expone en público a quien se atrasa», no «es autoritario».',
+    'Tocá <b>Agregar causa</b> (o Enter). Tu causa aparece en la espina elegida. Cargá al menos 2.'],
     'El efecto es de identidad, no de carácter',
     'Las 6 espinas son las 6M adaptadas. La pregunta de fondo en todas es la misma: ¿qué hace que el líder quede del lado de “ellos” y que la fecha sea “su” fecha y no la del equipo?')+
   `<div class="card"><div class="row">
@@ -330,9 +346,9 @@ votacion(){
   const ranked = rankedCausas();
   const topIds = ranked.filter(r=>r.v>0).slice(0,3).map(r=>r.id);
   return consigna('Fase 3','Priorizar: ¿cuáles causas explican más?',[
-    `Tenés ${MAX_VOTES} votos. Usalos en las causas que, si se resolvieran, más ayudarían a recuperar la fecha.`,
-    'No votes la más repetida: votá la que tenga más poder explicativo.',
-    'Las 3 más votadas pasan a los 5 Porqués.'],
+    'Leé la lista de causas cargadas por el grupo.',
+    'Tocá <b>Votar</b> en las 3 que más explican por qué no se llega a la fecha. Para cambiar, tocá <b>Quitar voto</b>.',
+    'Las 3 más votadas quedan resaltadas y pasan a la pestaña 5 Porqués.'],
     'Hipótesis antes que culpables',
     'Evitá atribuir el resultado solo a la personalidad del líder. Priorizá causas que hablen de la relación entre el líder y el grupo.')+
   `<div class="card"><div class="row" style="justify-content:space-between"><h3>Causas cargadas (${ranked.length})</h3><span class="tag">Te quedan ${Math.max(0,MAX_VOTES-mine.length)} votos</span></div>
@@ -345,9 +361,9 @@ porques(){
   const opts = (top.length?top:rankedCausas().slice(0,6));
   const visibles = S.porques;
   return consigna('Fase 4','5 Porqués',[
-    'Elegí una de las causas priorizadas.',
-    'Preguntá “¿por qué?” hasta 5 veces. Cada respuesta debe explicar la anterior.',
-    'Cerrá con la causa raíz y el concepto clave que la explica, y tocá “Grabar cambios”.'],
+    'En <b>Causa priorizada</b> elegí una de las más votadas.',
+    'Completá los porqués <b>en orden, de arriba hacia abajo</b>: el 1 explica la causa elegida, el 2 explica lo que escribiste en el 1, el 3 explica el 2… No hace falta usar los 5.',
+    'Cuando ya no haya otro porqué, escribí la <b>Causa raíz</b>, elegí el <b>Concepto clave</b> y tocá <b>Grabar mi análisis</b>.'],
     'De la conducta al mecanismo',
     'Un buen 5 Porqués baja de la conducta (“sanciona en público”) al mecanismo de identidad (“compensa con poder coercitivo la falta de influencia”).')+
   `<div class="grid2">
@@ -355,8 +371,8 @@ porques(){
     <div class="whys">
       <label for="wCausa">Causa priorizada</label>
       <select id="wCausa"><option value="">Elegí una causa…</option>${opts.map(r=>`<option value="${esc(r.texto)}" ${doc.causa===r.texto?'selected':''}>${esc(r.texto)} (${r.v} votos)</option>`).join('')}</select>
-      ${[1,2,3,4,5].map(i=>`<label for="w${i}">¿Por qué? ${i}</label><input id="w${i}" type="text" maxlength="160" value="${esc(doc['p'+i]||'')}">`).join('')}
-      <label for="wRaiz">Causa raíz</label><input id="wRaiz" type="text" maxlength="200" value="${esc(doc.raiz||'')}">
+      ${[1,2,3,4,5].map(i=>`<label for="w${i}">${i===1?'↓ ¿Por qué 1? ¿Por qué ocurre la causa elegida?':'↓ ¿Por qué '+i+'? ¿Por qué ocurre lo que escribiste en el '+(i-1)+'?'}</label><input id="w${i}" type="text" maxlength="160" placeholder="${WHY_EX[i-1]}" value="${esc(doc['p'+i]||'')}">`).join('')}
+      <label for="wRaiz">= Causa raíz: la última respuesta, la que ya no tiene otro porqué</label><input id="wRaiz" type="text" maxlength="200" value="${esc(doc.raiz||'')}">
       <label for="wConc">Concepto clave que la explica</label>
       <select id="wConc"><option value="">Elegí…</option>${CONCEPTS.map(c=>`<option ${doc.concepto===c?'selected':''}>${esc(c)}</option>`).join('')}</select>
       <button class="primary" id="wSave" type="button">Grabar mi análisis</button>
@@ -371,9 +387,9 @@ diagnostico(){
   const avg = id => { const v=valid.map(d=>d[id]).filter(x=>typeof x==='number'); return v.length? (v.reduce((a,b)=>a+b,0)/v.length):0 };
   const powerCount = key => POWER.map(p=>({t:p, v:valid.filter(d=>d[key]===p).length}));
   return consigna('Fase 5','Termómetro: ¿qué forma de liderar predomina y cuál debería?',[
-    'Ponete en el lugar de un integrante del equipo de proyecto y calificá al líder del caso (1 = nada, 7 = totalmente).',
-    'Elegí qué base de poder usa hoy y cuál debería predominar.',
-    'Comparen: ¿dónde está la brecha más grande?'],
+    'En cada una de las 4 preguntas, tocá un número del 1 (nada) al 7 (totalmente) pensando en el líder del caso.',
+    'En las dos listas de abajo elegí el poder que usa hoy y el que debería predominar.',
+    'Se graba solo. A la derecha ves el promedio del grupo: buscá la brecha más grande.'],
     'Pulso ILI y bases de poder',
     'Las 4 dimensiones son las del Identity Leadership Inventory (ILI); las preguntas son paráfrasis didácticas. Las bases de poder son las de French y Raven: recompensa y coerción logran conformidad; el poder referente surge de la identidad compartida.')+
   `<div class="grid2">
@@ -392,9 +408,9 @@ a3(){
   const top = rankedCausas().filter(r=>r.v>0).slice(0,3);
   const raices = S.porques.filter(p=>p.raiz);
   return consigna('Fase 6','A3: contramedidas con el programa 5R',[
-    'Cada participante propone al menos 2 contramedidas, en pasos distintos del 5R.',
-    'Cada acción debe ser concreta para el equipo de proyecto y ayudar a llegar a la fecha, con un indicador para medirla.',
-    'Nombrá el concepto clave que la sostiene: si no hay concepto, no es una contramedida de liderazgo.'],
+    'Mirá arriba las causas priorizadas y las causas raíz: tus acciones tienen que atacarlas.',
+    'Completá <b>Nueva contramedida</b> siguiendo los 5 pasos que se explican ahí y tocá <b>Agregar</b>.',
+    'Cargá al menos 2 acciones, en pasos distintos del 5R. Aparecen en la columna de su paso.'],
     'Programa 5R',
     'Readying, Reflecting, Representing, Realizing, Reviewing: el camino para que el líder pase a gestionar el “nosotros” en lugar de controlar a las personas.')+
   `<div class="a3head">
@@ -412,22 +428,30 @@ a3(){
       <div class="note"><strong>5 · El poder se gasta</strong><span>Exponer y sancionar logra cumplimiento corto; cuanto más control, menos influencia.</span></div>
     </div>
   </div>
-  <div class="card"><h3>Nueva contramedida</h3><div class="row">
-    <select id="aPaso" aria-label="Paso 5R">${STEPS5R.map(s=>`<option value="${s.id}">${s.t}</option>`).join('')}</select>
-    <input id="aAcc" class="grow" type="text" maxlength="160" placeholder="Acción concreta con el equipo de proyecto">
+  <div class="card"><h3>Nueva contramedida</h3>
+    <div class="howto"><strong>Cómo cargar una acción</strong><ol>
+      <li>En <b>Paso 5R</b> elegí en qué etapa va: Preparar, Reflexionar, Representar, Concretar o Revisar.</li>
+      <li>En <b>Acción concreta</b> escribí qué se hace, quién y cuándo. Ej.: «El líder abre cada reunión de avance preguntando qué necesita cada área, desde la semana 1».</li>
+      <li>En <b>Concepto clave</b> elegí la idea que sostiene la acción.</li>
+      <li>En <b>Indicador</b> poné cómo vas a saber si funciona. Ej.: «hitos a tiempo» o «atrasos avisados antes de la fecha».</li>
+      <li>Tocá <b>Agregar</b>. La acción aparece abajo, en la columna de su paso.</li>
+    </ol></div>
+    <div class="row">
+    <select id="aPaso" aria-label="Paso 5R">${STEPS5R.map(s=>`<option value="${s.id}">${s.t} · ${s.d.split(':')[0]}</option>`).join('')}</select>
+    <input id="aAcc" type="text" maxlength="160" placeholder="Acción concreta: qué se hace, quién y cuándo" aria-label="Acción concreta" style="flex:1 1 100%">
     <select id="aConc" aria-label="Concepto clave"><option value="">Concepto clave…</option>${CONCEPTS.map(c=>`<option>${esc(c)}</option>`).join('')}</select>
     <input id="aKpi" type="text" maxlength="80" placeholder="Indicador (ej.: hitos a tiempo)" style="width:190px">
     <button class="primary" id="aAdd" type="button">Agregar</button></div></div>
-  <div class="a3cols">${STEPS5R.map(s=>{const items=S.contra.filter(c=>c.paso===s.id).sort((a,b)=>(a.ts||0)-(b.ts||0)); return `<div class="a3col"><h3>${s.t}</h3><p class="muted" style="font-size:13px">${esc(s.d)}</p>${items.map(c=>`<div class="note"><span>${esc(c.accion)}</span>${c.concepto?`<span class="tag" style="align-self:flex-start;white-space:normal">${esc(c.concepto)}</span>`:''}${c.kpi?`<span style="font-size:13px"><strong>Indicador:</strong> ${esc(c.kpi)}</span>`:''}${c.pid===S.pid?`<span class="meta"><span>Tuyo</span><button type="button" data-del="contramedidas/${esc(c.id)}">Borrar</button></span>`:''}</div>`).join('')||'<p class="empty">Sin contramedidas.</p>'}</div>`}).join('')}</div>`;
+  <div class="a3cols">${STEPS5R.map(s=>{const items=S.contra.filter(c=>c.paso===s.id).sort((a,b)=>(a.ts||0)-(b.ts||0)); return `<div class="a3col"><h3>${s.t} · ${s.d.split(':')[0]}</h3><p class="muted" style="font-size:13px">${esc(s.d)}</p>${items.map(c=>`<div class="note"><span>${esc(c.accion)}</span>${c.concepto?`<span class="tag" style="align-self:flex-start;white-space:normal">${esc(c.concepto)}</span>`:''}${c.kpi?`<span style="font-size:13px"><strong>Indicador:</strong> ${esc(c.kpi)}</span>`:''}${c.pid===S.pid?`<span class="meta"><span>Tuyo</span><button type="button" data-del="contramedidas/${esc(c.id)}">Borrar</button></span>`:''}</div>`).join('')||'<p class="empty">Sin contramedidas.</p>'}</div>`}).join('')}</div>`;
 },
 cierre(){
   const mine = S.cierre.find(c=>c.id===S.pid) || {};
   const valid = S.cierre.filter(cuenta);
   const counts = SIGNALS.map(s=>({t:s, v:valid.filter(c=>c.senal===s).length}));
   return consigna('Fase 7','Alerta temprana: ¿qué vas a vigilar en tu próximo proyecto?',[
-    'Elegí la señal temprana que más ves (o podrías ver) en tus proyectos.',
-    'Escribí un compromiso concreto para esta semana y tocá “Grabar cambios”.',
-    'El facilitador lee 3 compromisos en voz alta para cerrar.'],
+    'En <b>Señal temprana</b> elegí la que más ves (o podrías ver) en tus proyectos.',
+    'En <b>Mi compromiso para esta semana</b> escribí una acción concreta.',
+    'Tocá <b>Grabar</b>. El facilitador lee 3 compromisos para cerrar.'],
     'Detectar antes de que caigan los números',
     'Los problemas de identidad aparecen antes que los atrasos: primero en el lenguaje y en la conducta del grupo. Cuando el equipo dice “su fecha” en lugar de “nuestra fecha”, el liderazgo ya se está perdiendo.')+
   `<div class="grid2">
@@ -471,7 +495,7 @@ function keepFocus(fn){
 function renderPanel(){
   const drafts={}; ['rOtro','cTxt','aAcc','aKpi','w1','w2','w3','w4','w5','wRaiz','sComp','cCat','aPaso','aConc','wCausa','wConc','sSen','pHoy','pDebe'].forEach(id=>{const el=document.getElementById(id); if(el) drafts[id]=el.value});
   const rSel=document.querySelector('input[name="rOp"]:checked'); const rVal=rSel?rSel.value:null;
-  keepFocus(()=>{ $('#main').innerHTML = `<div class="panel">${PANELS[S.view]()}</div>`; });
+  keepFocus(()=>{ $('#main').innerHTML = `<div class="panel">${PANELS[S.view]()}${stepNav()}</div>`; });
   Object.entries(drafts).forEach(([id,v])=>{const el=document.getElementById(id); if(el && v && el!==document.activeElement) el.value=v});
   if(rVal){ const r=document.querySelector('input[name="rOp"][value="'+rVal+'"]'); if(r) r.checked=true; }
   const rc=$('#rCount'), ro=$('#rOtro'); if(rc&&ro) rc.textContent=ro.value.length+'/'+OTRO_MAX;
@@ -481,6 +505,7 @@ function scheduleRender(){ if(renderQueued) return; renderQueued=true; requestAn
 
 $('#main').addEventListener('click', async e => {
   const t = e.target.closest('button'); if(!t) return;
+  if(t.dataset.goto){ S.view=t.dataset.goto; renderNav(); renderPanel(); window.scrollTo({top:0, behavior:'smooth'}); return; }
   const m = me();
   if(t.id==='rSave'){ if(!needDb()) return; const r=await saveResp(); if(r) toast('Respuesta grabada'); else if(r===null) toast('Elegí una opción o escribí tu respuesta.'); }
   else if(t.id==='cAdd'){ if(!needDb()) return; const r=await addCausa(); if(r===null) toast('Escribí la causa antes de agregarla.'); else if(r) toast('Causa agregada'); }
@@ -517,6 +542,23 @@ function setupFacil(){
   };
   $('#fReset').onclick = ask;
 }
+
+
+async function wipeAll(){
+  for(const col of ['votos_caso','respuestas_caso','causas','votos','porques','diag','contramedidas','cierre']){ const snap=await S.db.collection(col).get(); for(const d of snap.docs) await S.db.doc(col+'/'+d.id).delete(); }
+  await S.db.doc('estado/sesion').set({fase:'caso'});
+}
+function closeTopReset(){ const z=$('#topResetZone'); z.hidden=true; z.innerHTML=''; }
+$('#topReset').addEventListener('click', () => {
+  if(!needDb()) return;
+  const z=$('#topResetZone'); z.hidden=false;
+  if(!S.canEdit){ z.innerHTML='<span>Solo quien conduce el taller puede borrar todo.</span><button id="rzNo" type="button">Cerrar</button>'; $('#rzNo').onclick=closeTopReset; return; }
+  z.innerHTML = `<strong>¿Borrar todas las respuestas, votos y escritos de todos los participantes y volver a la fase 1?</strong><button id="rzYes" type="button" class="danger">Sí, borrar todo</button><button id="rzNo" type="button">Cancelar</button>`;
+  $('#rzNo').onclick = closeTopReset;
+  $('#rzYes').onclick = async () => { z.innerHTML='<span>Borrando todo…</span>';
+    try{ await wipeAll(); toast('Actividad reiniciada de cero'); markSaved(); }catch(e){ toast('No se pudo borrar todo. Probá de nuevo.'); }
+    closeTopReset(); scheduleRender(); };
+});
 
 // ---------- inicio ----------
 renderNav(); renderPanel();
