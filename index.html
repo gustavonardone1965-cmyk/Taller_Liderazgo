@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <style>body{margin:0}[hidden]{display:none!important}</style>
-<title>Taller de Liderazgo Grido</title>
+<title>Taller REG Grido</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap">
 <style>
@@ -148,19 +148,44 @@ nav.phases button.now .n::after{content:" · en curso";color:var(--accent);font-
 </style>
 </head>
 <body>
+<style>
+.vidlink{font-size:13px;font-weight:600;color:var(--accent);text-decoration:none;border:1px solid var(--accent);border-radius:8px;padding:6px 10px}
+.vidlink:hover{background:var(--accent-soft)}
+.vidcard{display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between;background:var(--accent-soft);border:1px solid var(--accent);border-radius:var(--r);padding:16px 20px}
+.vidcard .btnlink{background:var(--accent);color:#FFF;text-decoration:none;font-weight:700;border-radius:8px;padding:10px 16px;white-space:nowrap}
+.src{font-size:11px;color:var(--muted);font-style:italic}
+.cycle{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:14px}
+.chipc{background:var(--blue-soft);color:var(--blue);border-radius:999px;padding:5px 12px;font-weight:600}
+.hero{background:var(--navy);color:var(--onnavy);border-radius:var(--r);padding:20px 22px;display:flex;flex-direction:column;gap:8px}
+.hero h2{color:var(--onnavy)} .hero p{color:#D5DCE6}
+.a3grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:760px){.a3grid{grid-template-columns:1fr}}
+.a3box{background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--blue);border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.a3box.auto{border-left-color:var(--accent)}
+.a3box h3{font-size:15px}
+.vbtn{padding:2px 10px;font-size:12px}
+.vbtn.on{background:var(--accent);color:#FFF;border-color:var(--accent)}
+.seed{border-style:dashed}
+.ulist{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:3px;font-size:14px}
+.form{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.form > *{min-width:0}
+.form label{font-size:13px;font-weight:600;color:var(--muted)}
+.bridge td,.bridge th{font-size:14px;padding:7px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.bridge{width:100%;border-collapse:collapse}
+</style>
 <div class="wrap">
   <header class="top">
     <div style="display:flex;flex-direction:column;gap:4px">
-      <span class="eyebrow">Curso de liderazgo · Red Grido</span>
-      <h1>Taller: el lanzamiento que no llega a tiempo</h1>
-      <p class="muted">Ishikawa + votación + 5 Porqués + A3 con programa 5R</p>
+      <span class="eyebrow">Taller REG · Red Grido</span>
+      <h1>Aprendemos juntos para crecer juntos</h1>
+      <p class="muted">Filosofía REG + Ishikawa + A3 aplicados a dos casos de la metodología REG</p>
     </div>
     <div class="row">
       <span id="conn" class="status">Conectando el tablero compartido…</span>
     </div>
   </header>
 
-  <div class="idbar" aria-label="Tu identificación">
+  <div class="idbar" aria-label="Tus aportes">
     <span class="muted" style="font-size:13px">Tus aportes son anónimos. Solo vos podés borrar los tuyos.</span>
     <span class="savebox"><span class="when" id="savedAt">Sin cambios grabados</span><button class="primary" id="saveAll" type="button">Grabar cambios</button><button id="topReset" type="button" class="danger">Borrar todo y reiniciar</button></span>
     <div id="topResetZone" class="resetzone" hidden></div>
@@ -171,6 +196,8 @@ nav.phases button.now .n::after{content:" · en curso";color:var(--accent);font-
     <label for="fFase" style="font-size:13px">Fase en curso</label>
     <select id="fFase"></select>
     <button id="fSet" type="button">Llevar a todos a esta fase</button>
+    <label for="fDesafio" style="font-size:13px">Desafío compartido (Caso A)</label>
+    <select id="fDesafio"></select>
     <span style="flex:1"></span>
     <span id="fResetZone" class="confirm"><button id="fReset" type="button">Reiniciar todo de cero…</button></span>
   </div>
@@ -188,9 +215,7 @@ nav.phases button.now .n::after{content:" · en curso";color:var(--accent);font-
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<!-- ===== CONFIGURACIÓN DE FIREBASE =====
-     Pegá acá los datos de tu app web de Firebase
-     (Consola de Firebase > Configuración del proyecto > Tus apps > SDK setup and configuration > Config). -->
+<!-- ===== CONFIGURACIÓN DE FIREBASE ===== -->
 <script>
 window.FIREBASE_CONFIG = {
   apiKey: "AIzaSyBlCkzdBtLZIr1VMEgmnheR2kNlt1Sw8Bs",
@@ -207,75 +232,145 @@ window.FIREBASE_CONFIG = {
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
 (() => {
+// =====================================================================
+// CONTENIDO: todo lo que sigue sale de los documentos REG de Grido:
+// Guía REG para Miembros, Guía REG Coordinador, Anexo Proceso REG,
+// Guía REG Desafíos Compartidos, Worksheet Desafío Compartido y
+// Guía para casos desafío individuales (A3 y 360°).
+// =====================================================================
 const PHASES = [
- {id:'caso', n:'1', t:'El caso'},
- {id:'ishikawa', n:'2', t:'Ishikawa colectivo'},
- {id:'votacion', n:'3', t:'Votar causas'},
- {id:'porques', n:'4', t:'5 Porqués'},
- {id:'diagnostico', n:'5', t:'Termómetro de liderazgo'},
- {id:'a3', n:'6', t:'A3 y contramedidas 5R'},
- {id:'cierre', n:'7', t:'Alerta temprana'},
+ {id:'filosofia', n:'1', t:'Filosofía REG'},
+ {id:'ej_ishikawa', n:'2', t:'Ejemplo · Espina de pescado'},
+ {id:'ej_a3', n:'3', t:'Ejemplo · A3'},
+ {id:'a_foto', n:'4', t:'Caso A · Foto actual'},
+ {id:'a_ishikawa', n:'5', t:'Caso A · Ishikawa'},
+ {id:'a_a3', n:'6', t:'Caso A · A3 compartido'},
+ {id:'b_ishikawa', n:'7', t:'Caso B · Ishikawa'},
+ {id:'b_a3', n:'8', t:'Caso B · A3 del coordinador'},
+ {id:'cierre', n:'9', t:'Mi compromiso'},
+ {id:'takeaway', n:'10', t:'Takeaway'},
 ];
-const CATS = [
- {id:'personas', t:'Personas', c:'Idiosincrasia compartida', q:'¿El equipo de proyecto lo ve como “uno de los nuestros”?', side:'a'},
- {id:'metodo', t:'Método', c:'Justicia procedimental', q:'¿Cómo define plazos y prioridades? ¿Da voz y explica?', side:'a'},
- {id:'gestion', t:'Gestión y medición', c:'Poder “sobre” el grupo', q:'¿Cómo controla el avance? ¿Premia, expone o sanciona?', side:'a'},
- {id:'entorno', t:'Entorno', c:'Relaciones intergrupales', q:'¿Qué áreas se ven como “ellos”? ¿Planta, abastecimiento, marketing, la dirección?', side:'b'},
- {id:'recursos', t:'Recursos', c:'Promoción del grupo', q:'Ante atrasos o faltantes, ¿defiende al equipo o lo culpa?', side:'b'},
- {id:'comunicacion', t:'Comunicación', c:'Relato y mística de equipo', q:'¿Hay un relato común del lanzamiento y rituales que unan?', side:'b'},
+const COMPETENCIAS = [
+ {id:'c1', t:'Accountability', d:'haciéndonos cargo de nuestros compromisos, decisiones y resultados'},
+ {id:'c2', t:'Autoliderazgo', d:'mayor conciencia y reflexión sobre nuestras decisiones y forma de actuar'},
+ {id:'c3', t:'Agilidad para el aprendizaje', d:'aprendiendo de la experiencia propia y de otros'},
+ {id:'c4', t:'Agilidad para el cambio', d:'adaptándonos a nuevos escenarios y desafíos'},
+ {id:'c5', t:'Mirada estratégica', d:'ampliando la capacidad para analizar y proyectar el negocio'},
+ {id:'c6', t:'Influencia social', d:'relaciones de confianza y colaboración para lograr mejores resultados'},
 ];
-const CONCEPTS = ['Idiosincrasia compartida (ser uno de los nuestros)','Promoción (hacerlo por nosotros)','Emprendimiento (construir el nosotros)','Mística de equipo (hacer que el nosotros se viva)','Poder “sobre” vs “a través de”','Justicia procedimental','Relaciones intergrupales (nosotros/ellos)','Liderazgo co-construido con el equipo','El líder como mejor ejemplo del grupo','Un nosotros más amplio: todas las áreas','Sesgo de atribución al líder'];
-const STEPS5R = [
- {id:'readying', t:'Readying', d:'Preparar: legitimar el proceso y el rol del líder'},
- {id:'reflecting', t:'Reflecting', d:'Reflexionar: ¿quiénes somos y qué valoramos?'},
- {id:'representing', t:'Representing', d:'Representar: metas y conductas del nosotros'},
- {id:'realizing', t:'Realizing', d:'Concretar: rituales, estructuras y logros visibles'},
- {id:'reviewing', t:'Reviewing', d:'Revisar: medir y ajustar'},
+// Ejemplos de preguntas de desafío compartido de la Guía REG Desafíos Compartidos (Etapa 2)
+const DESAFIOS = [
+ {id:'retencion', t:'¿Cómo mejorar la retención de colaboradores?'},
+ {id:'productividad', t:'¿Cómo aumentar la productividad del equipo?'},
+ {id:'cliente', t:'¿Cómo mejorar la experiencia del cliente?'},
+ {id:'admin', t:'¿Cómo gestionar administrativamente mejor la franquicia?'},
 ];
-const POWER = ['Recompensa','Coercitivo','Legítimo','Experto','Referente'];
-const DIMS = [
- {id:'d1', t:'Idiosincrasia compartida', q:'¿El líder representa lo que somos como equipo?'},
- {id:'d2', t:'Promoción', q:'¿Defiende los intereses del equipo?'},
- {id:'d3', t:'Emprendimiento', q:'¿Nos hace sentir parte de un mismo grupo?'},
- {id:'d4', t:'Mística de equipo', q:'¿Crea espacios y actividades que nos unen?'},
+const FOTO = [
+ {id:'evid', t:'¿Cómo se manifiesta en mi realidad?', h:'Evidencia concreta'},
+ {id:'impacto', t:'¿Qué impacto tiene?', h:'Impacto'},
+ {id:'hoy', t:'¿Qué estoy haciendo hoy?', h:'Lo que hacemos hoy'},
+ {id:'aprendi', t:'¿Qué aprendí?', h:'Lo que aprendí'},
 ];
+// Espinas del Ishikawa del Caso A: método 6M adaptado a la gestión de personas
+const CATS_A = [
+ {id:'personas', t:'Personas', q:'¿Qué pasa con las personas del equipo?', side:'a'},
+ {id:'metodos', t:'Métodos de gestión', q:'¿Qué prácticas o procesos usamos hoy?', side:'a'},
+ {id:'medicion', t:'Medición y feedback', q:'¿Cómo y cada cuánto damos y recibimos feedback?', side:'a'},
+ {id:'entorno', t:'Entorno y clima', q:'¿Qué del contexto o del clima influye?', side:'b'},
+ {id:'recursos', t:'Recursos', q:'¿Con qué herramientas, tiempo o medios contamos?', side:'b'},
+ {id:'liderazgo', t:'Liderazgo', q:'¿Qué hacemos nosotros como líderes de la franquicia?', side:'b'},
+];
+// Caso B: causas posibles tomadas textualmente de alertas y factores de éxito de los documentos REG
+const CATS_B = [
+ {id:'formacion', t:'Formación del grupo', side:'a', seeds:[
+   {id:'bs1', t:'Confianza, expectativas y acuerdos de funcionamiento no construidos', s:'Guía Coordinador · Ciclo de vida'},
+   {id:'bs2', t:'Confidencialidad no asegurada: lo compartido no queda en el grupo', s:'Guía Miembros · Principios'}]},
+ {id:'preparacion', t:'Preparación', side:'a', seeds:[
+   {id:'bs3', t:'Reuniones individuales que no identifican desafíos', s:'Guía Coordinador · Reuniones individuales'},
+   {id:'bs4', t:'Preparación débil con el anfitrión: caso superficial', s:'Guía Coordinador · Preparación del anfitrión'},
+   {id:'bs5', t:'Logística, tiempos, materiales y objetivos sin revisar', s:'Guía Coordinador · Preparación del anfitrión'}]},
+ {id:'facilitacion', t:'Facilitación', side:'a', seeds:[
+   {id:'bs6', t:'Catarsis: el grupo solo describe problemas sin generar aprendizaje', s:'Guía Coordinador · Facilitación avanzada'},
+   {id:'bs7', t:'Voces dominantes y participantes silenciosos sin incluir', s:'Guía Coordinador · Facilitación avanzada'},
+   {id:'bs8', t:'Desacuerdo vivido como competencia de opiniones', s:'Guía Coordinador · Facilitación avanzada'},
+   {id:'bs9', t:'Coordinador en rol de experto o consultor, en lugar de diseñar conversaciones', s:'Guía Coordinador · Filosofía REG'}]},
+ {id:'participacion', t:'Participación de miembros', side:'b', seeds:[
+   {id:'bs10', t:'Falta de participación', s:'Guía Coordinador · Alertas'},
+   {id:'bs11', t:'Baja reflexión', s:'Guía Coordinador · Alertas'},
+   {id:'bs12', t:'Temas superficiales o coyunturales', s:'Guía Miembros · Principio de profundidad'}]},
+ {id:'seguimiento', t:'Seguimiento', side:'b', seeds:[
+   {id:'bs13', t:'Aprendizajes, acuerdos y compromisos sin registrar en la minuta', s:'Guía Coordinador · Herramientas REG'},
+   {id:'bs14', t:'Sin seguimiento 30-60-90 días', s:'Guía Coordinador · Seguimiento'},
+   {id:'bs15', t:'Compromisos gigantes en lugar de experimentos pequeños', s:'Guía Desafíos Compartidos · Etapa 6'},
+   {id:'bs16', t:'Incumplimiento reiterado de compromisos', s:'Guía Coordinador · Alertas'}]},
+ {id:'herramientas', t:'Herramientas y registro', side:'b', seeds:[
+   {id:'bs17', t:'Guías de casos desafío (A3 / 360°) sin usar', s:'Guía para casos desafío individuales'},
+   {id:'bs18', t:'Biblioteca de aprendizajes sin alimentar', s:'Guía Coordinador · Herramientas REG'},
+   {id:'bs19', t:'Encuestas de salida y de cierre sin completar', s:'Anexo Proceso REG · Herramientas'}]},
+];
+const SEEDS_B = CATS_B.flatMap(c=>c.seeds.map(s=>({...s, cat:c.id})));
+// Caso B · A3: opciones = intervenciones de la Guía Coordinador (Calidad y madurez REG)
+const OPC_B = [
+ {id:'bo1', t:'Reuniones individuales reforzadas'},
+ {id:'bo2', t:'Redefinición de acuerdos'},
+ {id:'bo3', t:'Acompañamiento metodológico'},
+];
+// Caso B · A3: ayuda que necesito del grupo (Guía A3 REG, punto 6)
+const AYUDA = [
+ {id:'bh1', t:'Pensar alternativas'}, {id:'bh2', t:'Cuestionar mis supuestos'}, {id:'bh3', t:'Compartir experiencias similares'},
+ {id:'bh4', t:'Identificar riesgos'}, {id:'bh5', t:'Tomar una decisión'}, {id:'bh6', t:'Diseñar próximos pasos'},
+];
+const PREGUNTAS = ['¿Qué no estamos viendo?','¿Qué aprendimos?','¿Qué evidencia tenemos?','¿Qué experimento pequeño podríamos realizar?','¿Qué haríamos diferente?'];
+const MAXV = {A:3, B:3, BO:2, BH:6};
 
-const SIGNALS = ['Se dice “él” o “ellos” en vez de “nosotros”','Los atrasos se conocen tarde: nadie avisa','Se cumple lo mínimo, sin iniciativa','El equipo consulta a un referente informal','Las áreas se culpan entre sí','Piden salir del proyecto o faltan a las reuniones'];
-const MAX_VOTES = 3;
-const WHY_EX = ['Ej.: porque el líder expone en público a quien se atrasa','Ej.: porque quiere asegurar la fecha con control','Ej.: porque no siente que el equipo lo siga','Ej.: porque no se ganó el lugar de “uno de los nuestros”','(opcional)'];
-const RESP = [
- {id:'r1', t:'El líder quedó afuera del equipo: hay que sumarlo al “nosotros” antes de exigir la fecha'},
- {id:'r2', t:'La fecha es del líder y no del equipo: hay que construir el compromiso con todas las áreas'},
- {id:'r3', t:'Se controla con miedo: hay que pasar de exponer los atrasos a resolverlos juntos'},
- {id:'r4', t:'Cada área juega para sí: hay que fijar una meta común en lugar de metas individuales'},
- {id:'r5', t:'Los problemas llegan tarde: hay que crear espacios seguros para avisar a tiempo'},
-];
-const OTRO_MAX = 145;
-
-const S = {db:null, canEdit:false, pid:null, fase:'caso', view:'caso',
-  resp:[], causas:[], votos:[], porques:[], diag:[], contra:[], cierre:[]};
+const S = {db:null, canEdit:false, pid:null, fase:'filosofia', view:'filosofia', desafioA:'retencion',
+  resp:[], causas:[], votos:[], contra:[], cierre:[]};
 const $ = (s, el=document) => el.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const store = {get(k){try{return localStorage.getItem(k)}catch(e){return null}}, set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
-function toast(msg){const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove('show'),2200);}
-function me(){return {}}
-function needDb(){ if(!S.db){toast('El tablero compartido no está disponible en esta vista.'); return false} return true }
+function toast(msg){const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove('show'),2400);}
+function needDb(){ if(!S.db){toast('El tablero compartido no está disponible. Revisá el cartel de arriba a la derecha.'); return false} return true }
 function markSaved(){ const d=new Date(); $('#savedAt').textContent='Cambios grabados a las '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
-async function safe(p, ok){ try{ await p; if(ok) toast(ok); markSaved(); return true }catch(e){ toast(e && e.code==='quota_exceeded' ? 'El tablero llegó a su límite de aportes. Pedile al facilitador que lo vacíe.' : 'No se pudo grabar. Probá de nuevo.'); return false } }
+async function safe(p, ok){ try{ await p; if(ok) toast(ok); markSaved(); return true }catch(e){ console.error(e); toast('No se pudo grabar. Probá de nuevo.'); return false } }
 function canon(id){return String(id).replace(/[^A-Za-z0-9_\-.~:@+]/g,'_').slice(0,120)}
-const cuenta = () => true;
-let localPid = store.get('tl_pid'); if(!localPid){ localPid = 'p'+Math.random().toString(36).slice(2,10); store.set('tl_pid', localPid) }
-S.pid = localPid;
+const desafioA = () => (DESAFIOS.find(d=>d.id===S.desafioA)||DESAFIOS[0]).t;
 
+// ---------- votos ----------
+const votesOf = id => S.votos.filter(v=>v.causa===id).length;
+const myVotes = g => S.votos.filter(v=>v.pid===S.pid && v.g===g);
+const iVoted = id => S.votos.some(v=>v.pid===S.pid && v.causa===id);
+function vbtn(id, g){ const on=iVoted(id); const full=!on && myVotes(g).length>=MAXV[g];
+  return `<span class="meta" style="align-items:center"><span><b>${votesOf(id)}</b> voto${votesOf(id)===1?'':'s'}</span><button type="button" class="vbtn ${on?'on':''}" data-vote="${esc(id)}" data-g="${g}" ${full?'disabled':''}>${on?'Quitar':'Votar'}</button></span>`; }
+function leftTag(g, label){ return `<span class="tag">${label}: te quedan ${Math.max(0,MAXV[g]-myVotes(g).length)} de ${MAXV[g]}</span>`; }
+function ranked(list){ return list.map(x=>({...x, v:votesOf(x.id)})).sort((a,b)=>b.v-a.v); }
+
+// ---------- utilidades de render ----------
+function consigna(eyebrow, title, steps, keyTitle, keyText, src){
+  return `<section class="consigna"><div style="display:flex;flex-direction:column;gap:8px"><span class="eyebrow">${eyebrow}</span><h2>${title}</h2><div class="howto"><strong>Cómo completar esta pestaña</strong><ol>${steps.map(s=>`<li>${s}</li>`).join('')}</ol></div></div><aside class="clave"><span class="eyebrow">Concepto REG</span><strong>${keyTitle}</strong><p class="muted" style="font-size:14px">${keyText}</p>${src?`<span class="src">Fuente: ${src}</span>`:''}</aside></section>`;
+}
+function bars(items){
+  const max = Math.max(1, ...items.map(i=>i.v));
+  return items.map(i => `<div class="bar ${i.v===max && i.v>0 ? 'hl':''}"><span>${esc(i.t)}</span><span class="v">${i.v}</span><div class="track"><div class="fill" style="width:${Math.round(100*i.v/max)}%"></div></div></div>`).join('');
+}
+const delBtn = (col,id,pid) => pid===S.pid ? `<button type="button" data-del="${col}/${esc(id)}">Borrar</button>` : '';
+function itemNote(it, col, extra=''){ return `<div class="note"><span>${esc(it.texto||it.accion)}</span>${extra}${it.pid===S.pid?`<span class="meta"><span>Tuyo</span>${delBtn(col,it.id,it.pid)}</span>`:''}</div>`; }
+const empty = t => `<p class="empty">${t}</p>`;
+const itemsA = tipo => S.causas.filter(c=>c.caso==='A' && c.tipo===tipo).sort((a,b)=>(a.ts||0)-(b.ts||0));
+const contraOf = (caso, sec) => S.contra.filter(c=>c.caso===caso && c.sec===sec).sort((a,b)=>(a.ts||0)-(b.ts||0));
 
 function doneFase(id){
-  const p=S.pid;
-  return {caso:()=>S.resp.some(r=>r.id===p), ishikawa:()=>S.causas.some(c=>c.pid===p), votacion:()=>S.votos.some(v=>v.pid===p),
-    porques:()=>S.porques.some(x=>x.id===p), diagnostico:()=>S.diag.some(x=>x.id===p), a3:()=>S.contra.some(c=>c.pid===p), cierre:()=>S.cierre.some(x=>x.id===p)}[id]?.()||false;
+  const p=S.pid, mineC=f=>S.causas.some(c=>c.pid===p && f(c)), mineK=f=>S.contra.some(c=>c.pid===p && f(c)), mineV=g=>S.votos.some(v=>v.pid===p && v.g===g);
+  return {filosofia:()=>S.resp.some(r=>r.id===p),
+    a_foto:()=>mineC(c=>c.caso==='A' && FOTO.some(f=>f.id===c.tipo)),
+    a_ishikawa:()=>mineC(c=>c.caso==='A' && c.tipo==='causa') || mineV('A'),
+    a_a3:()=>mineK(c=>c.caso==='A'),
+    b_ishikawa:()=>mineV('B') || mineC(c=>c.caso==='B'),
+    b_a3:()=>mineK(c=>c.caso==='B') || mineV('BO') || mineV('BH'),
+    cierre:()=>S.cierre.some(x=>x.id===p)}[id]?.()||false;
 }
 function stepNav(){
   const i=PHASES.findIndex(p=>p.id===S.view); const prev=PHASES[i-1], next=PHASES[i+1];
-  return `<div class="stepnav">${prev?`<button type="button" data-goto="${prev.id}">← ${esc(prev.t)}</button>`:'<span></span>'}<span class="muted" style="font-size:13px">Pestaña ${i+1} de ${PHASES.length}${doneFase(S.view)?' · completada ✓':''}</span>${next?`<button type="button" class="primary" data-goto="${next.id}">Siguiente: ${esc(next.t)} →</button>`:'<span class="tag">Fin del taller. ¡Gracias!</span>'}</div>`;
+  return `<div class="stepnav">${prev?`<button type="button" data-goto="${prev.id}">← ${esc(prev.t)}</button>`:'<span></span>'}<span class="muted" style="font-size:13px">Pestaña ${i+1} de ${PHASES.length}${doneFase(S.view)?' · completada ✓':''}</span>${next?`<button type="button" class="primary" data-goto="${next.id}">Siguiente: ${esc(next.t)} →</button>`:'<span class="tag">Fin del taller. Aprendemos juntos para crecer juntos.</span>'}</div>`;
 }
 function renderNav(){
   const nav = $('#phases'); nav.innerHTML='';
@@ -283,239 +378,397 @@ function renderNav(){
     const b=document.createElement('button'); b.type='button'; b.setAttribute('role','tab');
     b.setAttribute('aria-selected', S.view===ph.id ? 'true':'false');
     if(S.fase===ph.id) b.classList.add('now');
-    b.innerHTML = `<span class="n">${'Fase '+ph.n}${doneFase(ph.id)?' ✓':''}</span><span class="t">${esc(ph.t)}</span>`;
+    b.innerHTML = `<span class="n">Fase ${ph.n}${doneFase(ph.id)?' ✓':''}</span><span class="t">${esc(ph.t)}</span>`;
     b.onclick = () => { S.view=ph.id; renderNav(); renderPanel(); };
     nav.appendChild(b);
   });
 }
-function consigna(eyebrow, title, steps, keyTitle, keyText){
-  return `<section class="consigna"><div style="display:flex;flex-direction:column;gap:8px"><span class="eyebrow">${eyebrow}</span><h2>${title}</h2><div class="howto"><strong>Cómo completar esta pestaña</strong><ol>${steps.map(s=>`<li>${s}</li>`).join('')}</ol></div></div><aside class="clave"><span class="eyebrow">Concepto clave</span><strong>${keyTitle}</strong><p class="muted" style="font-size:14px">${keyText}</p></aside></section>`;
-}
-function bars(items){
-  const max = Math.max(1, ...items.map(i=>i.v));
-  return items.map(i => `<div class="bar ${i.v===max && i.v>0 ? 'hl':''}"><span>${esc(i.t)}</span><span class="v">${i.v}</span><div class="track"><div class="fill" style="width:${Math.round(100*i.v/max)}%"></div></div></div>`).join('');
-}
-function rankedCausas(){
-  const n = {}; S.votos.filter(cuenta).forEach(v=>{ n[v.causa]=(n[v.causa]||0)+1 });
-  return S.causas.map(c=>({...c, v:n[c.id]||0})).sort((a,b)=>b.v-a.v || (a.ts||0)-(b.ts||0));
-}
-function respuestaCard(){
-  const mine = S.resp.find(r=>r.id===S.pid) || {};
-  const valid = S.resp.filter(cuenta);
-  const counts = RESP.map(o=>({t:o.t, v:valid.filter(r=>r.op===o.id).length})).concat([{t:'Otra', v:valid.filter(r=>r.op==='otra').length}]);
-  const otras = valid.filter(r=>r.op==='otra' && r.otro);
-  return `<div class="grid2">
-   <div class="card"><h3>Tu respuesta</h3>
-    <p class="muted" style="font-size:14px">¿Por qué un equipo competente no llega a la fecha, y qué tiene que cambiar para lograr la meta? Elegí una opción.</p>
-    <div role="radiogroup" aria-label="Respuesta al caso" style="display:flex;flex-direction:column;gap:6px">
-     ${RESP.map(o=>`<label class="note" style="flex-direction:row;gap:10px;align-items:flex-start;cursor:pointer"><input type="radio" name="rOp" value="${o.id}" ${mine.op===o.id?'checked':''}> <span>${esc(o.t)}</span></label>`).join('')}
-     <label class="note" style="flex-direction:row;gap:10px;align-items:flex-start;cursor:pointer"><input type="radio" name="rOp" value="otra" ${mine.op==='otra'?'checked':''}> <span>Otra</span></label>
-     <textarea id="rOtro" maxlength="${OTRO_MAX}" placeholder="Escribí tu respuesta (hasta ${OTRO_MAX} caracteres)" aria-label="Otra respuesta">${esc(mine.otro||'')}</textarea>
-     <span class="countnote" id="rCount">${(mine.otro||'').length}/${OTRO_MAX}</span>
-    </div>
-    <button class="primary" id="rSave" type="button">Grabar mi respuesta</button>
-   </div>
-   <div class="card"><h3>Respuestas del grupo (${valid.length})</h3>
-    ${bars(counts)}
-    <h3>Otras respuestas (${otras.length})</h3>
-    ${otras.map(r=>`<div class="note"><span>${esc(r.otro)}</span></div>`).join('')||'<p class="empty">Todavía no hay otras respuestas.</p>'}
-   </div></div>`;
-}
-async function saveResp(){
-  const sel=document.querySelector('input[name="rOp"]:checked'); const otro=($('#rOtro')?.value||'').trim().slice(0,OTRO_MAX);
-  if(!sel && !otro) return null;
-  const op = sel ? sel.value : 'otra';
-  if(op==='otra' && !otro){ toast('Escribí tu respuesta en “Otra”.'); return false }
-  return safe(S.db.doc('respuestas_caso/'+S.pid).set({op, otro: op==='otra'?otro:'', ...me()}));
-}
-function note(c){ return `<div class="note"><span>${esc(c.texto)}</span>${c.pid===S.pid?`<span class="meta"><span>Tuyo</span><button type="button" data-del="causas/${esc(c.id)}">Borrar</button></span>`:''}</div>` }
 
+// ---------- pestañas ----------
 const PANELS = {
-caso(){
-  return consigna('Fase 1','El caso: “El lanzamiento que no llega a tiempo”',[
-    'Leé el caso de la izquierda.',
-    'En <b>Tu respuesta</b> (abajo) marcá una de las 5 opciones. Si ninguna te convence, marcá <b>Otra</b> y escribí la tuya en el cuadro de texto.',
-    'Tocá <b>Grabar mi respuesta</b>. A la derecha ves cómo respondió el grupo.'],
-    'Del individuo a la relación',
-    'Ante un proyecto atrasado, la mirada tradicional busca un culpable: el líder o un área. La mirada de identidad mira la relación: un equipo hace suya una fecha cuando la siente como un compromiso del “nosotros”.')+
-  `<div class="grid2">
-    <div class="card"><span class="eyebrow">Desafío tipo Grido / Helacor · caso didáctico, ficticio</span><h3>Lanzar una nueva línea antes de la temporada alta</h3>
-      <p>La empresa decide lanzar una nueva línea de producto para la próxima temporada alta. Se arma un equipo de proyecto con todas las áreas involucradas: desarrollo de producto, producción en planta, calidad, abastecimiento, marketing y logística hacia la red de franquicias. La fecha de lanzamiento está comprometida con toda la red: si se pierde, se pierde la ventana de venta.</p>
-      <p>La dirección nombra como líder del proyecto a una persona que viene de otra industria, con experiencia en gestión de proyectos. Para asegurar la fecha impone su metodología y su cronograma sin consultar, controla el avance en reuniones donde expone en público a quien se atrasa y fija metas individuales por área.</p>
-      <p>A mitad del proyecto hay hitos atrasados, las áreas se culpan entre sí (planta a abastecimiento, marketing a planta), dos integrantes clave piden salir del proyecto y los problemas aparecen tarde porque nadie los avisa. Cuando surge una duda, el equipo consulta a un referente técnico de planta antes que al líder.</p>
-      <p><strong>La pregunta: ¿por qué un equipo competente no llega a la fecha, y qué tiene que cambiar para lograr la meta?</strong></p>
+takeaway(){
+  const topA = ranked(S.causas.filter(c=>c.caso==='A' && c.tipo==='causa')).filter(x=>x.v>0).slice(0,3);
+  const poolB = SEEDS_B.map(s=>({id:s.id, texto:s.t})).concat(S.causas.filter(c=>c.caso==='B').map(c=>({id:c.id, texto:c.texto})));
+  const topB = ranked(poolB).filter(x=>x.v>0).slice(0,3);
+  const comp = COMPETENCIAS.map(c=>({t:c.t, v:S.resp.filter(r=>r.op===c.id).length})).sort((a,b)=>b.v-a.v).filter(c=>c.v>0).slice(0,2);
+  const nExp = contraOf('A','exp').length + S.contra.filter(c=>c.caso==='B' && c.sec==='plan').length;
+  const nComp = S.cierre.filter(c=>c.compromiso).length;
+  const ins = [
+   ['Se lidera desde adentro del «nosotros», no desde arriba','El líder influye cuando el equipo lo siente uno de los suyos y ve que trabaja para el grupo. El cargo da autoridad; la influencia la da el grupo.','Guía Miembros: «las personas crecen más cuando aprenden junto a otros» · Taller de liderazgo'],
+   ['Preguntar vale más que aconsejar','El coordinador no es experto ni consultor: diseña conversaciones. Una buena pregunta abre más que una respuesta rápida. Reflexión antes que consejo.','Guía Coordinador · Filosofía REG y preguntas poderosas'],
+   ['El problema casi nunca es una persona: es un sistema','La espina de pescado obliga a mirar métodos, medición, entorno, recursos y liderazgo antes de culpar. Así se evita la catarsis y se llega a una causa donde se puede actuar.','Ejemplo Ishikawa · Guía Coordinador: evitar la catarsis'],
+   ['Separar lo que sé de lo que creo','El A3 distingue hechos de supuestos. Muchas veces el bloqueo está en un supuesto propio («si no estoy yo, sale mal») y no en la realidad.','Guía A3 REG: «¿Qué supuestos estoy haciendo? ¿Qué no estoy viendo?»'],
+   ['Experimentos pequeños, no compromisos gigantes','Cada uno define qué va a probar, cuándo y cómo sabrá si funcionó. Lo chico y medible se cumple; lo grande y vago se posterga.','Guía Desafíos Compartidos · Etapa 6'],
+   ['Sin seguimiento no hay aprendizaje','Lo que no se registra ni se revisa se pierde. 30 días para implementar, 60 para evidencia y ajustes, 90 para consolidar y transferir.','Guía Coordinador · Seguimiento 30-60-90'],
+   ['Lo que aprende uno se vuelve de toda la red','Cuando una persona crece, crece su equipo, su franquicia y toda la red. Por eso los aprendizajes se comparten y se guardan en la biblioteca de aprendizajes.','Guía Miembros · Guía Coordinador: biblioteca de aprendizajes'],
+   ['Empezar por el porqué','Las personas no se comprometen con lo que hacemos sino con por qué lo hacemos. El porqué de REG ya está escrito: aprendemos juntos para crecer juntos. Cada meta, cada A3 y cada experimento tienen que conectar con ese porqué.','Simon Sinek, TED «Cómo los grandes líderes inspiran la acción» · Guía Miembros'],
+  ];
+  const rol = (t, items, src) => `<div class="card"><h3>${t}</h3><ul class="ulist">${items.map(x=>`<li>${x}</li>`).join('')}</ul><span class="src">${src}</span></div>`;
+  return consigna('Fase 10','Takeaway: lo que nos llevamos',[
+    'Leé la frase central, los 8 insights y lo que nos deja la charla de Simon Sinek: son el resumen de todo el taller.',
+    'Mirá <b>Lo que construimos hoy</b>: se arma solo con lo que cargó el grupo.',
+    'Elegí el insight que más te sirve y conectalo con el compromiso que grabaste en la pestaña anterior.'],
+    'Aprendemos juntos para crecer juntos',
+    'El éxito no se mide por lo que se habló, sino por la calidad de los aprendizajes y por las acciones que surgen de ellos.', 'Guía REG Miembros · Guía REG Coordinador')+
+  `<div class="hero"><span class="eyebrow" style="color:#F2A65A">La idea central</span>
+    <h2>En Grido el liderazgo no se impone: se construye con el grupo, se prueba con experimentos pequeños y se sostiene con seguimiento.</h2>
+    <p>Las herramientas (espina de pescado y A3) no son el fin: son la forma ordenada de pasar de la conversación a la acción y de la acción al aprendizaje compartido.</p></div>
+  <div class="card"><h3>Los 8 insights del taller</h3>
+    <div class="a3grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr))">${ins.map((x,i)=>`<div class="note" style="gap:6px"><strong style="font-size:15px">${i+1} · ${x[0]}</strong><span>${x[1]}</span><span class="src">${x[2]}</span></div>`).join('')}</div></div>
+  <div class="card" style="border-left:5px solid var(--accent)"><span class="eyebrow">Lo que nos deja la charla de Simon Sinek</span>
+    <h3>«La gente no compra lo que hacés, compra por qué lo hacés»</h3>
+    <div class="a3grid" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr))">
+      <div class="note"><strong>El círculo dorado: porqué → cómo → qué</strong><span>La mayoría comunica de afuera hacia adentro: qué hace, después cómo. Los líderes que inspiran lo hacen al revés: empiezan por el porqué, su propósito o creencia.</span></div>
+      <div class="note"><strong>El porqué mueve las decisiones</strong><span>La parte del cerebro que maneja los sentimientos, la confianza y la lealtad decide, pero no maneja palabras. Por eso los datos solos no movilizan: el propósito sí.</span></div>
+      <div class="note"><strong>Liderar no es lo mismo que tener el cargo</strong><span>Quien tiene la posición tiene autoridad; quien lidera inspira. Seguimos a quien lidera no porque tengamos que hacerlo, sino porque queremos.</span></div>
+      <div class="note"><strong>Sumar a quienes creen lo mismo</strong><span>Conviene incorporar a quienes comparten lo que creemos, no solo a quienes saben hacer la tarea. Ellos son los primeros en sumarse y los que arrastran al resto.</span></div>
+      <div class="note"><strong>«Tengo un sueño», no «tengo un plan»</strong><span>Martin Luther King convocó con su creencia. La gente fue por lo que creía, no por él. El porqué compartido es lo que hace que una causa sea de todos.</span></div>
+      <div class="note" style="background:var(--navy);color:var(--onnavy)"><strong>Para nosotros</strong><span style="color:#D5DCE6">Antes de pedir una meta, explicar para qué. Un equipo que entiende el porqué hace suya la fecha; un equipo que solo recibe el qué cumple lo mínimo. Es el «nosotros» del taller de liderazgo dicho de otra forma.</span></div>
     </div>
-    <div class="card"><h3>Lo que está en juego</h3>
-      <div class="note"><strong>Para el negocio</strong><span>Llegar a la red de franquicias antes del inicio de la temporada alta: el time to market define cuánto se vende de la nueva línea.</span><span>Cumplir los compromisos de fecha asumidos con la red.</span><span>Costos de recuperar el atraso: horas extra, compras urgentes, lanzamientos parciales.</span></div>
-      <div class="note"><strong>Para el equipo</strong><span>Desgaste por la presión de la fecha.</span><span>Áreas enfrentadas en lugar de un equipo de proyecto.</span><span>Salida de personas clave y pérdida de saber técnico.</span></div>
-      <p class="countnote">Preguntas para el plenario: ¿alguna vez viviste un proyecto así? ¿Qué hacía el líder? ¿Qué hacía el equipo?</p>
-    </div>
+    <span class="src">Fuente: Simon Sinek, TED «Cómo los grandes líderes inspiran la acción» (TEDxPuget Sound, 2009). El recuadro «Para nosotros» es una lectura propuesta para el taller.</span></div>
+  <div class="card"><h3>Cómo actuamos en conjunto: el camino de un desafío</h3>
+    <div class="cycle"><span class="chipc">Foto actual: hechos</span>→<span class="chipc">Espina de pescado: causas</span>→<span class="chipc">Votar: prioridades</span>→<span class="chipc">A3: causa de fondo y opciones</span>→<span class="chipc">Experimento pequeño</span>→<span class="chipc">Seguimiento 30-60-90</span>→<span class="chipc">Compartir con la red</span></div>
+    <p class="muted" style="font-size:14px">Es el ciclo REG aplicado: Experiencia → Conversación → Acción → Aprendizaje → Compartir → Nueva experiencia.</p></div>
+  <div class="grid3" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))">
+    ${rol('Qué hacemos como franquiciados',['Llevar al grupo desafíos reales, ordenados con el A3 o el 360°.','Participar con apertura: escuchar, preguntar y compartir experiencias.','Cumplir el experimento acordado y contar el resultado, salga bien o mal.','Desafiar con respeto: el desacuerdo enriquece cuando suma.'],'Guía Miembros · Guía casos individuales')}
+    ${rol('Qué hacemos como coordinadores',['Preparar reuniones individuales y anfitriones antes de cada encuentro.','Facilitar con preguntas poderosas y cortar la catarsis.','Equilibrar voces dominantes e incluir a los silenciosos.','Registrar compromisos y asegurar el seguimiento 30-60-90.'],'Guía Coordinador · Checklist de excelencia')}
+    ${rol('Qué mejoramos como red',['Alimentar la biblioteca de aprendizajes con prácticas transferibles.','Medir calidad: asistencia, participación, desafíos, aprendizajes y seguimiento de compromisos.','Completar encuestas de salida y de cierre para mejorar cada encuentro.','Detectar a tiempo las alertas: reuniones repetitivas, poca profundidad, dependencia del coordinador, ausencia de casos.'],'Guía Coordinador · Calidad y madurez REG · Anexo Proceso REG')}
   </div>
-  ${respuestaCard()}`;
-},
-ishikawa(){
-  const byCat = id => S.causas.filter(c=>c.cat===id).sort((a,b)=>(a.ts||0)-(b.ts||0));
-  const bone = c => `<div class="bone ${c.side==='b'?'b':''}"><div><h3>${esc(c.t)}</h3><span class="chip">${esc(c.c)}</span></div><p class="q">${esc(c.q)}</p>${byCat(c.id).map(note).join('')||'<p class="empty">Sin causas todavía.</p>'}</div>`;
-  return consigna('Fase 2','Ishikawa colectivo: ¿por qué el proyecto no llega a la fecha?',[
-    'En la lista desplegable <b>Espina</b> elegí dónde va tu causa (por ejemplo, «Método · Justicia procedimental»).',
-    'En el cuadro <b>Causa observable</b> escribí un hecho del caso, no un adjetivo: «expone en público a quien se atrasa», no «es autoritario».',
-    'Tocá <b>Agregar causa</b> (o Enter). Tu causa aparece en la espina elegida. Cargá al menos 2.'],
-    'El efecto es de identidad, no de carácter',
-    'Las 6 espinas son las 6M adaptadas. La pregunta de fondo en todas es la misma: ¿qué hace que el líder quede del lado de “ellos” y que la fecha sea “su” fecha y no la del equipo?')+
-  `<div class="card"><div class="row">
-      <select id="cCat" aria-label="Espina">${CATS.map(c=>`<option value="${c.id}">${esc(c.t)} · ${esc(c.c)}</option>`).join('')}</select>
-      <input id="cTxt" class="grow" type="text" maxlength="140" placeholder="Causa observable (máx. 140 caracteres)">
-      <button class="primary" id="cAdd" type="button">Agregar causa</button>
+  <div class="card"><h3>Cómo lograr el liderazgo: las 6 competencias en acción</h3>
+    <div class="tablewrap"><table class="bridge"><tr><th>Competencia</th><th>Se ve cuando…</th></tr>
+      <tr><td><b>Accountability</b></td><td>cumplo el experimento que comprometí y cuento el resultado.</td></tr>
+      <tr><td><b>Autoliderazgo</b></td><td>reviso mis supuestos antes de culpar a otros.</td></tr>
+      <tr><td><b>Agilidad para el aprendizaje</b></td><td>tomo una práctica de otro franquiciado y la pruebo en mi local.</td></tr>
+      <tr><td><b>Agilidad para el cambio</b></td><td>ajusto el plan a los 60 días según la evidencia.</td></tr>
+      <tr><td><b>Mirada estratégica</b></td><td>busco la causa de fondo, no solo el síntoma del día.</td></tr>
+      <tr><td><b>Influencia social</b></td><td>logro que el equipo haga suya la meta porque la siente del «nosotros».</td></tr></table></div>
+    <span class="src">Competencias: Guía REG para Miembros. Ejemplos de conducta: propuestos para el taller.</span></div>
+  <div class="card" style="border-left:5px solid var(--accent)"><h3>Lo que construimos hoy</h3>
+    <div class="a3grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
+      <div class="note"><strong>Competencias que más queremos fortalecer</strong>${comp.length?comp.map(c=>`<span>${esc(c.t)} (${c.v})</span>`).join(''):'<span class="muted">Se completa en la Fase 1.</span>'}</div>
+      <div class="note"><strong>Caso A · causas priorizadas</strong>${topA.length?topA.map(t=>`<span>${esc(t.texto)}</span>`).join(''):'<span class="muted">Se completa en la Fase 5.</span>'}</div>
+      <div class="note"><strong>Caso B · causas priorizadas</strong>${topB.length?topB.map(t=>`<span>${esc(t.texto)}</span>`).join(''):'<span class="muted">Se completa en la Fase 7.</span>'}</div>
+      <div class="note"><strong>Pasamos a la acción</strong><span>${nExp} experimento(s) y pasos 30-60-90 en los A3</span><span>${nComp} compromiso(s) personales grabados</span></div>
     </div></div>
+  <div class="card"><span class="eyebrow">Para seguir aprendiendo · opcional</span><h3>Tres charlas TED en español para profundizar</h3>
+    <div class="a3grid" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr))">
+      <div class="vidcard" style="flex-direction:column;align-items:flex-start"><strong>Simon Sinek · «Cómo los grandes líderes inspiran la acción»</strong><span class="muted" style="font-size:14px">TEDxPuget Sound, 2009 · 18 minutos. Los líderes que inspiran empiezan por el porqué: su propósito. Es la base del insight 8 y del recuadro sobre Sinek de esta pestaña.</span><a class="btnlink" href="https://www.ted.com/talks/simon_sinek_how_great_leaders_inspire_action?language=es&amp;subtitle=es" target="_blank" rel="noopener">▶ Ver la charla de Simon Sinek</a></div>
+      <div class="vidcard" style="flex-direction:column;align-items:flex-start"><strong>Amy Edmondson · «Cómo convertir a un grupo de extraños en un equipo»</strong><span class="muted" style="font-size:14px">TED, 2017 · 13 minutos. Cómo personas que no comparten jerarquía se organizan para resolver juntas un problema nuevo, aprendiendo mientras lo hacen. Une liderazgo, aprendizaje entre pares y resolución de problemas.</span><a class="btnlink" href="https://www.ted.com/talks/amy_edmondson_how_to_turn_a_group_of_strangers_into_a_team?language=es&amp;subtitle=es" target="_blank" rel="noopener">▶ Ver la charla de Amy Edmondson</a></div>
+      <div class="vidcard" style="flex-direction:column;align-items:flex-start"><strong>Tom Wujec · «¿Tienen un problema serio? Primero, díganme cómo hacen una tostada»</strong><span class="muted" style="font-size:14px">TEDGlobal, 2013 · 9 minutos. Dibujar y ordenar un problema en equipo ayuda a resolver problemas complejos. Es el complemento práctico de la espina de pescado y el A3.</span><a class="btnlink" href="https://www.ted.com/talks/tom_wujec_got_a_wicked_problem_first_tell_me_how_you_make_toast?language=es&amp;subtitle=es" target="_blank" rel="noopener">▶ Ver la charla de Tom Wujec</a></div>
+    </div>
+    <span class="src">Se abren en ted.com en una pestaña nueva. Si los subtítulos no aparecen en español, elegilos en el ícono de subtítulos del reproductor.</span></div>
+  <div class="hero" style="text-align:center;align-items:center"><h2>Aprendemos juntos para crecer juntos.</h2><p>La próxima reunión empieza con una pregunta: ¿qué probé, qué pasó y qué aprendí?</p></div>`;
+},
+ej_ishikawa(){
+  // Ejemplo didáctico: cada causa tiene un "¿por qué?" (subcausa) y una evidencia "¿cuándo / cómo se ve?"
+  const C = [
+   {t:'Personas', side:'a', c:[
+     {x:'Personal nuevo sin entrenar para la hora pico', p:'Se incorpora en temporada alta y aprende “sobre la marcha”', e:'2 de los 4 del turno noche tienen menos de un mes', top:true},
+     {x:'Una sola persona cobrando', p:'El resto del equipo arma pedidos y nadie releva la caja', e:'La fila de caja crece aunque haya gente libre'},
+     {x:'Cansancio al final del turno', p:'Turnos largos que terminan justo en el pico', e:'Más errores de cobro después de las 22 h'}]},
+   {t:'Métodos', side:'a', c:[
+     {x:'No hay roles definidos para el pico', p:'Cada uno hace “lo que hace falta” y se superponen tareas', e:'Dos personas atienden el mismo cliente y otro espera', top:true},
+     {x:'Los pedidos especiales se arman sin estándar', p:'Cada colaborador lo hace a su manera', e:'Un pedido especial tarda el doble que uno común'},
+     {x:'La toma de pedido y el cobro van separados', p:'El cliente hace dos filas: pedir y pagar', e:'Clientes que preguntan “¿dónde pago?”'}]},
+   {t:'Medición y feedback', side:'a', c:[
+     {x:'Nadie mide el tiempo de espera', p:'No hay un indicador ni una meta de servicio', e:'“Hoy estuvo pesado” es la única medida'},
+     {x:'Los reclamos no se revisan con el equipo', p:'Llegan al dueño y quedan ahí', e:'Mismo reclamo repetido varias semanas'},
+     {x:'No se analiza qué pasó después de un pico malo', p:'No hay espacio de cierre del turno', e:'Los mismos problemas cada viernes'}]},
+   {t:'Entorno', side:'b', c:[
+     {x:'Delivery y mostrador comparten la misma fila', p:'Los repartidores esperan en el mostrador', e:'Repartidores y clientes mezclados en la entrada'},
+     {x:'Un solo punto de cobro', p:'El diseño del local no lo previó para la demanda actual', e:'Cuello de botella visible en caja'},
+     {x:'Demanda concentrada en pocas horas', p:'Viernes, sábados y feriados de calor', e:'Entre las 20 y las 23 h entra la mitad de los clientes del día'}]},
+   {t:'Recursos', side:'b', c:[
+     {x:'Se repone producto en plena hora pico', p:'No hay una rutina de reposición antes del pico', e:'Un colaborador sale del mostrador a buscar baldes', top:true},
+     {x:'Insumos lejos del puesto de atención', p:'Cucuruchos, vasos y toppings guardados atrás', e:'Idas y vueltas durante la atención'},
+     {x:'Equipos que fallan cuando más se usan', p:'Sin mantenimiento preventivo', e:'El posnet se cuelga los sábados a la noche'}]},
+   {t:'Liderazgo', side:'b', c:[
+     {x:'El encargado resuelve todo él mismo', p:'Le cuesta delegar y nadie más toma decisiones', e:'El equipo espera su respuesta para cada duda'},
+     {x:'Turnos armados sin mirar la demanda', p:'Se repite la grilla de siempre', e:'Mismo personal un martes que un sábado'},
+     {x:'No hay briefing antes del pico', p:'Se arranca el turno sin repartir tareas', e:'Nadie sabe quién repone ni quién cobra'}]},
+  ];
+  const note = n => `<div class="note ${n.top?'':'seed'}" ${n.top?'style="border-color:var(--accent);background:var(--accent-soft)"':''}><strong style="font-size:14px">${n.x}</strong><span style="font-size:13px"><b>¿Por qué?</b> ${n.p}</span><span class="muted" style="font-size:13px"><b>Se ve cuando:</b> ${n.e}</span>${n.top?'<span class="tag" style="align-self:flex-start">Priorizada por el grupo</span>':''}</div>`;
+  const bone = b => `<div class="bone ${b.side==='b'?'b':''}"><h3>${b.t}</h3>${b.c.map(note).join('')}</div>`;
+  const whys = ['Los clientes esperan demasiado en la hora pico.','¿Por qué? Porque el equipo se desordena: dos atienden al mismo cliente, uno sale a reponer y la caja queda sola.','¿Por qué? Porque nadie tiene un rol fijo durante el pico y se repone cuando el producto ya se acabó.','¿Por qué? Porque el turno arranca sin repartir tareas y sin preparar la reposición.','¿Por qué? Porque nunca se definió cómo se trabaja en el pico: se resuelve improvisando cada vez.','Causa raíz: no existe un estándar de trabajo para la hora pico (quién hace qué y cuándo se repone).'];
+  return consigna('Fase 2 · Ejemplo','Ejemplo resuelto: espina de pescado (Ishikawa)',[
+    'Este es un <b>ejemplo didáctico</b> ya completo: no hay que cargar nada. Sirve para ver cómo se usa la herramienta antes de aplicarla a nuestros casos.',
+    'Leé primero la <b>definición del problema</b> y el <b>efecto</b> (la cabeza del pescado). Después cada espina: cada causa trae su <b>¿por qué?</b> y <b>cuándo se ve</b>.',
+    'Al final seguí los <b>5 porqués</b>: muestran cómo se baja de las causas priorizadas a la <b>causa raíz</b>.'],
+    'Para qué sirve la espina de pescado',
+    'Ordena las posibles causas de un problema por categorías, para que el grupo no se quede en la primera explicación ni en la catarsis, y pueda elegir dónde actuar.', 'Método Ishikawa · aplicado con las preguntas REG')+
+  `<div class="hero"><span class="eyebrow" style="color:#F2A65A">Ejemplo didáctico · problema genérico de un local</span><h2>En la hora pico los clientes esperan demasiado para ser atendidos</h2>
+    <p>Un franquiciado lleva este problema a su grupo REG. El grupo arma la espina de pescado con él.</p></div>
+  <div class="card"><h3>Paso 1 · Definir bien el problema antes de buscar causas</h3>
+    <div class="a3grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
+      <div class="note"><strong>¿Qué pasa?</strong><span>Los clientes esperan mucho para pedir y pagar; algunos se van sin comprar.</span></div>
+      <div class="note"><strong>¿Dónde?</strong><span>En el mostrador y en la caja del local.</span></div>
+      <div class="note"><strong>¿Cuándo?</strong><span>Viernes, sábados y feriados, entre las 20 y las 23 h, en temporada alta.</span></div>
+      <div class="note"><strong>¿Cuánto?</strong><span>Filas que llegan a la vereda y reclamos repetidos por demora.</span></div>
+      <div class="note"><strong>¿A quién afecta?</strong><span>Clientes, equipo del turno noche, repartidores de delivery y ventas del local.</span></div>
+    </div>
+    <span class="src">Regla: el efecto se escribe como un hecho observable, no como un culpable («los clientes esperan», no «el personal es lento»).</span></div>
+  <div class="card"><h3>Paso 2 · Buscar causas en las 6 espinas</h3><p class="muted" style="font-size:14px">Cada causa se acompaña de un primer <b>¿por qué?</b> y de un hecho que muestra <b>cuándo se ve</b>. Así se distingue una causa real de una opinión.</p></div>
   <div class="fish">
-    <div class="grid3">${CATS.filter(c=>c.side==='a').map(bone).join('')}</div>
-    <div class="spine"><div class="lineh"></div><div class="effect"><small>EFECTO</small>El proyecto pierde la fecha: el equipo no sigue al líder ni hace suya la meta</div></div>
-    <div class="grid3">${CATS.filter(c=>c.side==='b').map(bone).join('')}</div>
+    <div class="grid3">${C.filter(b=>b.side==='a').map(bone).join('')}</div>
+    <div class="spine"><div class="lineh"></div><div class="effect"><small>EFECTO (el problema)</small>Los clientes esperan demasiado en la hora pico</div></div>
+    <div class="grid3">${C.filter(b=>b.side==='b').map(bone).join('')}</div>
+  </div>
+  <div class="grid2">
+    <div class="card"><h3>Paso 3 · Priorizar</h3>
+      <ol class="ulist"><li>Se cargaron <b>18 causas</b>, tres por espina.</li>
+      <li>Cada integrante tuvo 3 votos y eligió las que, si se resolvieran, más bajarían la espera.</li>
+      <li>Quedaron <b>3 priorizadas</b> (en naranja): no hay roles definidos para el pico, personal nuevo sin entrenar y reposición en plena hora pico.</li>
+      <li>Con la pregunta REG <b>«¿Qué patrón aparece?»</b> el grupo vio que las tres hablan de lo mismo: el pico se trabaja sin organización previa.</li>
+      <li>Las causas del <b>Entorno</b> (un solo punto de cobro, demanda concentrada) son reales, pero el franquiciado no las puede cambiar en lo inmediato: se dejan anotadas para más adelante.</li></ol></div>
+    <div class="card"><h3>Paso 4 · Los 5 porqués hasta la causa raíz</h3>
+      <ol class="ulist" style="list-style:none;padding-left:0">${whys.map((w,i)=>`<li style="padding:6px 10px;border-radius:8px;${i===whys.length-1?'background:var(--navy);color:var(--onnavy);font-weight:600':'background:var(--bg);border:1px solid var(--line)'}">${i>0&&i<whys.length-1?'↓ ':''}${w}</li>`).join('')}</ol></div>
+  </div>
+  <div class="card" style="background:var(--navy);color:var(--onnavy)"><span class="eyebrow" style="color:#F2A65A">Causa raíz y próximo paso</span>
+    <h3 style="color:var(--onnavy)">La hora pico no está organizada: no hay un estándar de quién hace qué, ni de cuándo se repone</h3>
+    <ul class="ulist" style="color:#D5DCE6"><li><b>Experimento pequeño:</b> durante 2 semanas, briefing de 5 minutos antes de las 20 h con roles fijos (caja, armado, reposición) y reposición completa antes del pico.</li>
+    <li><b>Cómo sabré si funcionó:</b> menos reclamos por demora y la fila ya no llega a la vereda.</li>
+    <li><b>Seguimiento:</b> se cuenta el resultado en la próxima reunión REG y, si funciona, se pasa a un A3.</li></ul></div>
+  <p class="src">Ejemplo didáctico elaborado para el taller: no son datos de ninguna franquicia.</p>`;
+},
+ej_a3(){
+  const box = (n,t,html,auto) => `<div class="a3box ${auto?'auto':''}"><h3>${n} · ${t}</h3>${html}</div>`;
+  const ul = a => `<ul class="ulist">${a.map(x=>`<li>${x}</li>`).join('')}</ul>`;
+  return consigna('Fase 3 · Ejemplo','Ejemplo resuelto: A3 REG de un caso individual',[
+    'Este es un <b>ejemplo didáctico</b> ya completo, con otro problema distinto al de la espina de pescado. No hay que cargar nada.',
+    'Leé las 7 secciones en orden: es la misma estructura de la <b>Guía A3 REG</b> que se usa para llevar un desafío al grupo.',
+    'Fijate cómo cada sección responde una pregunta de la guía y cómo termina en un próximo paso concreto con seguimiento 30-60-90.'],
+    'Para qué sirve el A3 REG',
+    'Ordena rápido la información de un desafío antes de llevarlo al grupo: qué quiero lograr, qué está pasando, qué hay detrás, qué opciones tengo y qué ayuda necesito.', 'Guía para casos desafío individuales · Guía 1 A3 REG')+
+  `<div class="hero"><span class="eyebrow" style="color:#F2A65A">Ejemplo didáctico · desafío individual de un franquiciado</span><h2>«Tengo que estar yo en todas las aperturas del local»</h2>
+    <p>El franquiciado completa el A3 REG antes de la reunión y lo presenta a sus pares.</p></div>
+  <div class="a3grid">
+    ${box(1,'¿Cuál es el desafío?','<p><b>¿Cómo hago para</b> que mi encargado de turno abra el local solo, sin que yo tenga que estar presente?</p>')}
+    ${box(2,'¿Qué me gustaría que ocurriera?',ul(['<b>Resultado ideal:</b> el encargado abre solo la mayoría de los días, con todas las tareas de apertura hechas.','<b>Sería valioso porque:</b> gano tiempo para gestionar la franquicia y el encargado crece en su rol (tiempo, equipo, futuro).']))}
+    ${box(3,'Comprendiendo la situación',ul(['<b>Hoy:</b> abro yo todos los días.','<b>Cómo llegamos:</b> al principio era más rápido hacerlo yo.','<b>Quiénes influyen:</b> el encargado y el equipo de la mañana.','<b>Lo que intenté:</b> le mandé una lista de tareas por WhatsApp y una vez abrió solo; faltaron cosas y lo corregí delante del equipo.','<b>Lo que aprendí:</b> la lista sola no alcanza.']))}
+    ${box(4,'Mirando más profundo',ul(['<b>Qué hay detrás:</b> le pasé tareas, no criterio.','<b>Mi supuesto:</b> «si no estoy yo, sale mal».','<b>Lo que no estoy viendo:</b> qué piensa él de abrir solo.','<b>Lo que me preocupa perder:</b> el control de la calidad.','<b>Lo que me impide avanzar:</b> no me hago el tiempo para enseñarle.']))}
+    ${box(5,'Opciones que estoy considerando',ul(['<b>Opción 1:</b> acompañarlo en algunas aperturas y después dejarlo solo con un checklist.','<b>Opción 2:</b> repartir las aperturas entre dos encargados.','<b>Opción 3:</b> seguir abriendo yo.']))}
+    ${box(6,'Ayuda que necesito del grupo',ul(['Cuestionar mis supuestos.','Compartir experiencias similares: ¿alguien ya delegó la apertura?']))}
+    ${box(7,'Aprendizajes posteriores (después de la reunión)',ul(['<b>Lo más valioso que me llevo:</b> delegar es transferir criterio, no solo tareas.','<b>Algo que cambió mi mirada:</b> corregirlo delante del equipo le quitó autoridad.','<b>Próximo paso:</b> opción 1. Lo acompaño en 2 aperturas y después hacemos feedback semanal.']),true)}
+    ${box('30-60-90','Seguimiento del próximo paso',ul(['<b>30 días · implementación:</b> 2 aperturas acompañado; después abre solo con checklist.','<b>60 días · evidencia y ajustes:</b> reviso con él el checklist y ajustamos lo que falte.','<b>90 días · consolidación y transferencia:</b> abre solo y comparto el aprendizaje en mi grupo REG.']),true)}
+  </div>
+  <div class="card"><h3>Cómo se leyó el A3</h3>
+    <ol class="ulist"><li>El desafío se escribió en <b>una sola frase</b> que empieza con «¿Cómo hago para…?».</li>
+    <li>Las secciones 3 y 4 separan <b>lo que pasa</b> (hechos) de <b>lo que creo</b> (supuestos). Ahí aparece la causa de fondo: se delegaron tareas pero no criterio.</li>
+    <li>Las opciones son varias y una de ellas es «no cambiar nada»: así el grupo puede ayudar a decidir.</li>
+    <li>El cierre no es un compromiso gigante sino un <b>experimento pequeño</b> con fechas y forma de saber si funcionó.</li></ol></div>
+  <p class="src">Ejemplo didáctico elaborado para el taller con la estructura de la Guía A3 REG: no son datos de ninguna franquicia.</p>`;
+},
+filosofia(){
+  const mine = S.resp.find(r=>r.id===S.pid)||{};
+  const counts = COMPETENCIAS.map(c=>({t:c.t, v:S.resp.filter(r=>r.op===c.id).length}));
+  return consigna('Fase 1','Filosofía REG: el hacer de Grido',[
+    'Leé las tarjetas de abajo: qué es REG, sus principios, los roles y el ciclo de aprendizaje.',
+    'En <b>¿Qué competencia querés fortalecer?</b> tocá una de las 6 competencias.',
+    'Se graba sola. A la derecha ves qué eligió el grupo.'],
+    'El éxito de una REG',
+    'Se mide por la calidad de los aprendizajes y por las acciones que surgen de ellos.', 'Guía REG Coordinador · Filosofía REG')+
+  `<div class="hero"><span class="eyebrow" style="color:#F2A65A">¿Qué es REG?</span>
+    <h2>Reuniones de Equipos Grido: una comunidad de aprendizaje entre franquiciados</h2>
+    <p>Líderes que gestionan franquicias se reúnen para analizar desafíos, intercambiar perspectivas y ayudarse mutuamente a crecer. Creemos que las personas crecen más cuando aprenden junto a otros: cuando una persona crece, también crece su equipo, su franquicia y toda la red.</p>
+    <span class="src" style="color:#B9C3D0">Fuente: Guía REG para Miembros · Capítulo 1</span></div>
+  <div class="grid2">
+    <div class="card"><h3>Principios que hacen funcionar REG</h3>
+      <ul class="ulist"><li><b>Confidencialidad:</b> lo compartido en el grupo permanece en el grupo.</li><li><b>Participación activa:</b> cada integrante aporta valor para sí y para los demás.</li><li><b>Desafío respetuoso:</b> las diferencias enriquecen cuando se expresan con respeto y honestidad.</li><li><b>Profundidad:</b> temas relevantes, no solo situaciones superficiales o coyunturales.</li><li><b>Compromiso con la acción:</b> las conversaciones valen cuando se transforman en aprendizajes, decisiones y acciones.</li></ul>
+      <p class="muted" style="font-size:14px">Para el coordinador: confianza, confidencialidad, voluntariedad, <b>reflexión antes que consejo</b>, responsabilidad compartida y mejora continua.</p>
+      <span class="src">Fuentes: Guía REG para Miembros · Guía REG Coordinador</span></div>
+    <div class="card"><h3>Los protagonistas de cada encuentro</h3>
+      <ul class="ulist"><li><b>Miembro:</b> comparte experiencias, aporta perspectivas, pregunta y colabora.</li><li><b>Anfitrión:</b> comparte su realidad, desafíos u objetivos; su experiencia se vuelve aprendizaje para todos.</li><li><b>Coordinador:</b> no ocupa el rol de experto ni consultor. Diseña conversaciones que generen aprendizaje colectivo; no da respuestas.</li></ul>
+      <h3>El ciclo REG</h3>
+      <div class="cycle"><span class="chipc">Experiencia</span>→<span class="chipc">Conversación</span>→<span class="chipc">Acción</span>→<span class="chipc">Aprendizaje</span>→<span class="chipc">Compartir</span>→<span class="chipc">Nueva experiencia</span></div>
+      <span class="src">Fuentes: Guía REG para Miembros · Capítulo 3 · Guía REG Coordinador</span></div>
+  </div>
+  <div class="card"><h3>El proceso REG en 4 etapas</h3>
+    <div class="a3grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
+      <div class="note"><strong>1 · Ingreso y formación</strong><span>Contacto inicial, presentación del modelo, entrevista individual y reunión de ingreso.</span></div>
+      <div class="note"><strong>2 · Preparación</strong><span>Calendario anual, reuniones individuales para identificar desafíos y preparación del anfitrión.</span></div>
+      <div class="note"><strong>3 · Reunión grupal</strong><span>Check-in, presentación del anfitrión, caso principal con preguntas exploratorias, otros desafíos y feedback de cierre.</span></div>
+      <div class="note"><strong>4 · Seguimiento</strong><span>Registro de aprendizajes y compromisos, seguimiento individual y nuevos desafíos para próximas reuniones.</span></div>
+    </div><span class="src">Fuente: Anexo Proceso de trabajo REG</span></div>
+  <div class="grid2">
+    <div class="card"><h3>¿Qué competencia querés fortalecer?</h3>
+      <p class="muted" style="font-size:14px">REG busca contribuir a las competencias que Grido considera fundamentales para el futuro de la red.</p>
+      <div style="display:flex;flex-direction:column;gap:6px">${COMPETENCIAS.map(c=>`<button type="button" data-comp="${c.id}" class="${mine.op===c.id?'primary':''}" style="text-align:left"><b>${esc(c.t)}</b> · <span style="font-weight:400">${esc(c.d)}</span></button>`).join('')}</div>
+      <span class="src">Fuente: Guía REG para Miembros · REG y el desarrollo de competencias</span></div>
+    <div class="card"><h3>Lo que eligió el grupo (${S.resp.filter(r=>r.op).length})</h3>${bars(counts)}</div>
+  </div>
+  <div class="card"><h3>Puente con el taller de liderazgo</h3>
+    <p class="muted" style="font-size:14px">Correspondencia propuesta por el facilitador entre los conceptos de liderazgo trabajados y la filosofía REG. Es una lectura de interpretación, no un texto de los documentos REG.</p>
+    <div class="tablewrap"><table class="bridge"><tr><th>Concepto de liderazgo</th><th>Cómo aparece en REG</th></tr>
+      <tr><td>El liderazgo es un proceso de grupo, no un rasgo del jefe</td><td>«Las personas crecen más cuando aprenden junto a otros»</td></tr>
+      <tr><td>Poder «a través de» el grupo, no «sobre» él</td><td>El coordinador no da respuestas: diseña conversaciones</td></tr>
+      <tr><td>Idiosincrasia compartida: ser uno de los nuestros</td><td>Comunidad de pares franquiciados; confianza y confidencialidad</td></tr>
+      <tr><td>Justicia procedimental</td><td>Desafío respetuoso; equilibrar voces dominantes e incluir a los silenciosos</td></tr>
+      <tr><td>Mística de equipo (hacer que el nosotros se viva)</td><td>Compartir avances y aprendizajes; biblioteca de aprendizajes</td></tr>
+      <tr><td>Programa 5R · Reviewing</td><td>Seguimiento 30-60-90 días</td></tr></table></div></div>`;
+},
+a_foto(){
+  return consigna('Fase 4 · Caso A','Desafío compartido: construimos la foto actual',[
+    'Leé el desafío compartido del recuadro oscuro. La pregunta disparadora es: <b>«¿Cuántos de nosotros estamos viviendo algo parecido?»</b>',
+    'En la lista <b>Pregunta</b> elegí a cuál de las 4 preguntas responde tu aporte y escribilo en <b>Tu respuesta</b>. Usá hechos de tu franquicia.',
+    'Tocá <b>Agregar</b>. Respondé al menos las 4 preguntas, una por vez.'],
+    'Inteligencia colectiva',
+    'Un desafío compartido no pertenece a una sola persona: busca comprender un fenómeno común, identificar causas, detectar patrones y explorar alternativas. En la foto actual aparece una de las mayores riquezas del aprendizaje social.', 'Guía REG Desafíos Compartidos · Etapas 1 a 3')+
+  `<div class="hero"><span class="eyebrow" style="color:#F2A65A">Caso A · Desafío compartido entre franquiciados</span><h2>${esc(desafioA())}</h2>
+    <p>Pregunta de trabajo, amplia como pide la guía: «¿Cómo estamos abordando actualmente este desafío?»</p>
+    <span class="src" style="color:#B9C3D0">Ejemplo tomado de la Guía REG Desafíos Compartidos · Etapa 2. El facilitador puede elegir otro de los ejemplos de la guía.</span></div>
+  <div class="card"><div class="form">
+    <label for="fTipo">Pregunta</label><select id="fTipo">${FOTO.map(f=>`<option value="${f.id}">${esc(f.t)}</option>`).join('')}</select>
+    <input id="fTxt" type="text" maxlength="140" placeholder="Tu respuesta (máx. 140 caracteres)" aria-label="Tu respuesta" style="flex:1 1 280px">
+    <button class="primary" id="fAdd" type="button">Agregar</button></div></div>
+  <div class="a3grid" style="grid-template-columns:repeat(auto-fit,minmax(230px,1fr))">${FOTO.map(f=>`<div class="a3box"><h3>${esc(f.h)}</h3><span class="muted" style="font-size:13px">${esc(f.t)}</span>${itemsA(f.id).map(it=>itemNote(it,'causas')).join('')||empty('Sin aportes todavía.')}</div>`).join('')}</div>`;
+},
+a_ishikawa(){
+  const byCat = id => S.causas.filter(c=>c.caso==='A' && c.tipo==='causa' && c.cat===id).sort((a,b)=>votesOf(b.id)-votesOf(a.id));
+  const bone = c => `<div class="bone ${c.side==='b'?'b':''}"><h3>${esc(c.t)}</h3><p class="q">${esc(c.q)}</p>${byCat(c.id).map(it=>itemNote(it,'causas',vbtn(it.id,'A'))).join('')||empty('Sin causas todavía.')}</div>`;
+  return consigna('Fase 5 · Caso A','Ishikawa del desafío compartido',[
+    'Mirá la foto actual de la pestaña anterior: de ahí salen las causas. Si tenés dudas, volvé al <b>Ejemplo · Espina de pescado</b>.',
+    'En <b>Espina</b> elegí la categoría, escribí la causa en <b>Causa observable</b> y tocá <b>Agregar causa</b>.',
+    'Cuando estén cargadas, tocá <b>Votar</b> en las 3 causas que más se repiten en el grupo. Las más votadas pasan al A3.'],
+    'Exploración colectiva',
+    'Preguntas del coordinador: ¿Qué patrones observamos? ¿Qué causas aparecen repetidamente? ¿Qué creencias estamos sosteniendo? ¿Qué enfoques no hemos probado? ¿Qué franquicia parece haber avanzado más?', 'Guía REG Desafíos Compartidos · Etapa 4')+
+  `<div class="card"><div class="form">
+    <label for="cCat">Espina</label><select id="cCat">${CATS_A.map(c=>`<option value="${c.id}">${esc(c.t)}</option>`).join('')}</select>
+    <input id="cTxt" type="text" maxlength="140" placeholder="Causa observable (máx. 140 caracteres)" aria-label="Causa observable" style="flex:1 1 280px">
+    <button class="primary" id="cAdd" type="button">Agregar causa</button></div>
+    <div class="row" style="justify-content:space-between">${leftTag('A','Votos')}<span class="src">Espinas: método 6M del diagrama de Ishikawa, adaptado a la gestión de personas.</span></div></div>
+  ${S.desafioA==='retencion'?`<div class="howto" style="background:var(--accent-soft)"><strong>Pistas que da la Guía REG para este desafío</strong><span>La guía cita como ejemplo de aprendizajes de un grupo: la retención mejora cuando existe un plan de desarrollo visible; los equipos reaccionan mejor a feedback semanal que mensual; el reconocimiento informal aparece como factor común. Usalas como hipótesis a contrastar con la foto actual, no como respuestas.</span></div>`:''}
+  <div class="fish">
+    <div class="grid3">${CATS_A.filter(c=>c.side==='a').map(bone).join('')}</div>
+    <div class="spine"><div class="lineh"></div><div class="effect"><small>EFECTO · DESAFÍO</small>${esc(desafioA())}</div></div>
+    <div class="grid3">${CATS_A.filter(c=>c.side==='b').map(bone).join('')}</div>
   </div>`;
 },
-votacion(){
-  const mine = S.votos.filter(v=>v.pid===S.pid).map(v=>v.causa);
-  const ranked = rankedCausas();
-  const topIds = ranked.filter(r=>r.v>0).slice(0,3).map(r=>r.id);
-  return consigna('Fase 3','Priorizar: ¿cuáles causas explican más?',[
-    'Leé la lista de causas cargadas por el grupo.',
-    'Tocá <b>Votar</b> en las 3 que más explican por qué no se llega a la fecha. Para cambiar, tocá <b>Quitar voto</b>.',
-    'Las 3 más votadas quedan resaltadas y pasan a la pestaña 5 Porqués.'],
-    'Hipótesis antes que culpables',
-    'Evitá atribuir el resultado solo a la personalidad del líder. Priorizá causas que hablen de la relación entre el líder y el grupo.')+
-  `<div class="card"><div class="row" style="justify-content:space-between"><h3>Causas cargadas (${ranked.length})</h3><span class="tag">Te quedan ${Math.max(0,MAX_VOTES-mine.length)} votos</span></div>
-   ${ranked.length? ranked.map(r=>{const cat=CATS.find(c=>c.id===r.cat); const on=mine.includes(r.id); return `<div class="vote ${topIds.includes(r.id)?'top':''}"><span class="count">${r.v}</span><span><span style="display:block">${esc(r.texto)}</span><span class="tag">${esc(cat?cat.t:'')} · ${esc(cat?cat.c:'')}</span></span><button type="button" class="${on?'on':''}" data-vote="${esc(r.id)}" ${!on&&mine.length>=MAX_VOTES?'disabled':''}>${on?'Quitar voto':'Votar'}</button></div>`}).join('') : '<p class="empty">Todavía no hay causas. Volvé a la fase 2.</p>'}
-  </div>`;
-},
-porques(){
-  const doc = S.porques.find(p=>p.id===S.pid) || {};
-  const top = rankedCausas().filter(r=>r.v>0).slice(0,3);
-  const opts = (top.length?top:rankedCausas().slice(0,6));
-  const visibles = S.porques;
-  return consigna('Fase 4','5 Porqués',[
-    'En <b>Causa priorizada</b> elegí una de las más votadas.',
-    'Completá los porqués <b>en orden, de arriba hacia abajo</b>: el 1 explica la causa elegida, el 2 explica lo que escribiste en el 1, el 3 explica el 2… No hace falta usar los 5.',
-    'Cuando ya no haya otro porqué, escribí la <b>Causa raíz</b>, elegí el <b>Concepto clave</b> y tocá <b>Grabar mi análisis</b>.'],
-    'De la conducta al mecanismo',
-    'Un buen 5 Porqués baja de la conducta (“sanciona en público”) al mecanismo de identidad (“compensa con poder coercitivo la falta de influencia”).')+
-  `<div class="grid2">
-   <div class="card"><h3>Tu análisis</h3>
-    <div class="whys">
-      <label for="wCausa">Causa priorizada</label>
-      <select id="wCausa"><option value="">Elegí una causa…</option>${opts.map(r=>`<option value="${esc(r.texto)}" ${doc.causa===r.texto?'selected':''}>${esc(r.texto)} (${r.v} votos)</option>`).join('')}</select>
-      ${[1,2,3,4,5].map(i=>`<label for="w${i}">${i===1?'↓ ¿Por qué 1? ¿Por qué ocurre la causa elegida?':'↓ ¿Por qué '+i+'? ¿Por qué ocurre lo que escribiste en el '+(i-1)+'?'}</label><input id="w${i}" type="text" maxlength="160" placeholder="${WHY_EX[i-1]}" value="${esc(doc['p'+i]||'')}">`).join('')}
-      <label for="wRaiz">= Causa raíz: la última respuesta, la que ya no tiene otro porqué</label><input id="wRaiz" type="text" maxlength="200" value="${esc(doc.raiz||'')}">
-      <label for="wConc">Concepto clave que la explica</label>
-      <select id="wConc"><option value="">Elegí…</option>${CONCEPTS.map(c=>`<option ${doc.concepto===c?'selected':''}>${esc(c)}</option>`).join('')}</select>
-      <button class="primary" id="wSave" type="button">Grabar mi análisis</button>
-    </div></div>
-   <div class="card"><h3>Lo que encontró el grupo</h3>
-    ${visibles.length? visibles.slice().sort((a,b)=>(a.ts||0)-(b.ts||0)).map(p=>`<div class="salacard"><strong>${esc(p.causa||'')}</strong><ol>${[1,2,3,4,5].map(i=>p['p'+i]?`<li>${esc(p['p'+i])}</li>`:'').join('')}</ol>${p.raiz?`<div class="raiz"><strong>Raíz:</strong> ${esc(p.raiz)}</div>`:''}${p.concepto?`<span class="tag">${esc(p.concepto)}</span>`:''}</div>`).join('') : '<p class="empty">Nadie grabó su análisis todavía.</p>'}
-   </div></div>`;
-},
-diagnostico(){
-  const mine = S.diag.find(d=>d.id===S.pid) || {};
-  const valid = S.diag.filter(cuenta);
-  const avg = id => { const v=valid.map(d=>d[id]).filter(x=>typeof x==='number'); return v.length? (v.reduce((a,b)=>a+b,0)/v.length):0 };
-  const powerCount = key => POWER.map(p=>({t:p, v:valid.filter(d=>d[key]===p).length}));
-  return consigna('Fase 5','Termómetro: ¿qué forma de liderar predomina y cuál debería?',[
-    'En cada una de las 4 preguntas, tocá un número del 1 (nada) al 7 (totalmente) pensando en el líder del caso.',
-    'En las dos listas de abajo elegí el poder que usa hoy y el que debería predominar.',
-    'Se graba solo. A la derecha ves el promedio del grupo: buscá la brecha más grande.'],
-    'Pulso ILI y bases de poder',
-    'Las 4 dimensiones son las del Identity Leadership Inventory (ILI); las preguntas son paráfrasis didácticas. Las bases de poder son las de French y Raven: recompensa y coerción logran conformidad; el poder referente surge de la identidad compartida.')+
-  `<div class="grid2">
-   <div class="card"><h3>Tu calificación</h3>
-    ${DIMS.map(d=>`<div class="dim"><strong>${esc(d.t)}</strong><span class="muted" style="font-size:14px">${esc(d.q)}</span><div class="scale" role="group" aria-label="${esc(d.t)}">${[1,2,3,4,5,6,7].map(v=>`<button type="button" class="${mine[d.id]===v?'on':''}" data-dim="${d.id}" data-val="${v}">${v}</button>`).join('')}</div></div>`).join('')}
-    <div class="row"><label for="pHoy"><strong>Poder que usa hoy</strong></label><select id="pHoy"><option value="">Elegí…</option>${POWER.map(p=>`<option ${mine.hoy===p?'selected':''}>${p}</option>`).join('')}</select></div>
-    <div class="row"><label for="pDebe"><strong>Poder que debería predominar</strong></label><select id="pDebe"><option value="">Elegí…</option>${POWER.map(p=>`<option ${mine.debe===p?'selected':''}>${p}</option>`).join('')}</select></div>
-   </div>
-   <div class="card"><h3>Resultado del grupo (${valid.length} respuesta${valid.length===1?'':'s'})</h3>
-    ${DIMS.map(d=>{const a=avg(d.id); return `<div class="bar"><span>${esc(d.t)}</span><span class="v">${a?a.toFixed(1):'–'}</span><div class="track"><div class="fill" style="width:${Math.round(a/7*100)}%"></div></div></div>`}).join('')}
-    <p class="muted" style="font-size:13px">Promedio sobre 7.</p>
-    <div class="grid2"><div style="display:flex;flex-direction:column;gap:8px"><strong>Poder hoy</strong>${bars(powerCount('hoy'))}</div><div style="display:flex;flex-direction:column;gap:8px"><strong>Poder que debería predominar</strong>${bars(powerCount('debe'))}</div></div>
-   </div></div>`;
-},
-a3(){
-  const top = rankedCausas().filter(r=>r.v>0).slice(0,3);
-  const raices = S.porques.filter(p=>p.raiz);
-  return consigna('Fase 6','A3: contramedidas con el programa 5R',[
-    'Mirá arriba las causas priorizadas y las causas raíz: tus acciones tienen que atacarlas.',
-    'Completá <b>Nueva contramedida</b> siguiendo los 5 pasos que se explican ahí y tocá <b>Agregar</b>.',
-    'Cargá al menos 2 acciones, en pasos distintos del 5R. Aparecen en la columna de su paso.'],
-    'Programa 5R',
-    'Readying, Reflecting, Representing, Realizing, Reviewing: el camino para que el líder pase a gestionar el “nosotros” en lugar de controlar a las personas.')+
-  `<div class="a3head">
-    <div class="card"><span class="eyebrow">Problema y meta</span><p>El proyecto de lanzamiento pierde la fecha: autoridad formal sin influencia.</p><p class="muted" style="font-size:14px"><strong>Meta:</strong> lanzar en la fecha comprometida con la red, con el equipo completo.</p></div>
-    <div class="card"><span class="eyebrow">Causas priorizadas</span>${top.length?`<ol style="margin:0;padding-left:20px">${top.map(t=>`<li>${esc(t.texto)} <span class="muted">(${t.v})</span></li>`).join('')}</ol>`:'<p class="empty">Se completa con la votación.</p>'}</div>
-    <div class="card"><span class="eyebrow">Causas raíz (5 Porqués)</span>${raices.length?`<ul style="margin:0;padding-left:20px">${raices.map(r=>`<li>${esc(r.raiz)}</li>`).join('')}</ul>`:'<p class="empty">Se completa con los 5 Porqués.</p>'}</div>
-  </div>
-  <div class="card"><span class="eyebrow" style="color:var(--blue)">Claves de la relación líder–equipo</span>
-    <p class="muted" style="font-size:14px">Usalas para pensar contramedidas que vayan más allá del “nosotros”.</p>
-    <div class="grid3" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
-      <div class="note"><strong>1 · Se construye entre los dos</strong><span>El líder pone la fecha; el equipo decide si la hace suya o cumple lo mínimo.</span></div>
-      <div class="note"><strong>2 · El mejor ejemplo del grupo</strong><span>El líder es el primero en hacer lo que pide, no uno más ni alguien aparte.</span></div>
-      <div class="note"><strong>3 · Un nosotros más amplio</strong><span>Pasar de áreas enfrentadas a un solo equipo frente al desafío común: llegar a la red a tiempo.</span></div>
-      <div class="note"><strong>4 · No todo es el líder</strong><span>El éxito y el fracaso se le atribuyen de más; mirar también lo que pasa en el grupo.</span></div>
-      <div class="note"><strong>5 · El poder se gasta</strong><span>Exponer y sancionar logra cumplimiento corto; cuanto más control, menos influencia.</span></div>
-    </div>
-  </div>
-  <div class="card"><h3>Nueva contramedida</h3>
-    <div class="howto"><strong>Cómo cargar una acción</strong><ol>
-      <li>En <b>Paso 5R</b> elegí en qué etapa va: Preparar, Reflexionar, Representar, Concretar o Revisar.</li>
-      <li>En <b>Acción concreta</b> escribí qué se hace, quién y cuándo. Ej.: «El líder abre cada reunión de avance preguntando qué necesita cada área, desde la semana 1».</li>
-      <li>En <b>Concepto clave</b> elegí la idea que sostiene la acción.</li>
-      <li>En <b>Indicador</b> poné cómo vas a saber si funciona. Ej.: «hitos a tiempo» o «atrasos avisados antes de la fecha».</li>
-      <li>Tocá <b>Agregar</b>. La acción aparece abajo, en la columna de su paso.</li>
-    </ol></div>
-    <div class="row">
-    <select id="aPaso" aria-label="Paso 5R">${STEPS5R.map(s=>`<option value="${s.id}">${s.t} · ${s.d.split(':')[0]}</option>`).join('')}</select>
-    <input id="aAcc" type="text" maxlength="160" placeholder="Acción concreta: qué se hace, quién y cuándo" aria-label="Acción concreta" style="flex:1 1 100%">
-    <select id="aConc" aria-label="Concepto clave"><option value="">Concepto clave…</option>${CONCEPTS.map(c=>`<option>${esc(c)}</option>`).join('')}</select>
-    <input id="aKpi" type="text" maxlength="80" placeholder="Indicador (ej.: hitos a tiempo)" style="width:190px">
+a_a3(){
+  const top = ranked(S.causas.filter(c=>c.caso==='A' && c.tipo==='causa')).filter(x=>x.v>0).slice(0,3);
+  const list = (arr, f) => arr.length ? `<ul class="ulist">${arr.map(f).join('')}</ul>` : '';
+  const sec = (n,t,q,body,auto) => `<div class="a3box ${auto?'auto':''}"><h3>${n} · ${t}</h3><span class="muted" style="font-size:13px">${q}</span>${body}</div>`;
+  const exps = contraOf('A','exp');
+  return consigna('Fase 6 · Caso A','A3 del desafío compartido',[
+    'Los recuadros naranjas (1 a 4) se completan solos con lo que cargó el grupo en las pestañas anteriores.',
+    'En <b>Nuevo aporte al A3</b> elegí la sección (aprendizaje emergente, hipótesis o experimento), escribí el texto y tocá <b>Agregar</b>.',
+    'Para un <b>experimento</b> completá también <b>¿Cuándo?</b> y <b>¿Cómo sabré si funcionó?</b>. No buscamos compromisos gigantes: buscamos experimentos pequeños.'],
+    'De hallazgos a experimentos',
+    'En lugar de cerrar con soluciones, REG construye hallazgos. Cada miembro define qué va a probar, cuándo y cómo sabrá si funcionó.', 'Guía REG Desafíos Compartidos · Etapas 5 y 6 · Worksheet Desafío Compartido')+
+  `<div class="card"><h3>Nuevo aporte al A3</h3><div class="form">
+    <label for="aSec">Sección</label><select id="aSec"><option value="aprend">4 · Aprendizaje emergente</option><option value="hip">5 · Hipótesis del grupo</option><option value="exp">6 · Experimento</option><option value="res">7 · Resultado esperado</option></select>
+    <input id="aAcc" type="text" maxlength="160" placeholder="Texto del aporte" aria-label="Texto del aporte" style="flex:1 1 100%">
+    <input id="aCuando" type="text" maxlength="80" placeholder="Experimento: ¿cuándo?" aria-label="¿Cuándo?" style="flex:1 1 180px">
+    <input id="aKpi" type="text" maxlength="80" placeholder="Experimento: ¿cómo sabré si funcionó?" aria-label="¿Cómo sabré si funcionó?" style="flex:2 1 240px">
     <button class="primary" id="aAdd" type="button">Agregar</button></div></div>
-  <div class="a3cols">${STEPS5R.map(s=>{const items=S.contra.filter(c=>c.paso===s.id).sort((a,b)=>(a.ts||0)-(b.ts||0)); return `<div class="a3col"><h3>${s.t} · ${s.d.split(':')[0]}</h3><p class="muted" style="font-size:13px">${esc(s.d)}</p>${items.map(c=>`<div class="note"><span>${esc(c.accion)}</span>${c.concepto?`<span class="tag" style="align-self:flex-start;white-space:normal">${esc(c.concepto)}</span>`:''}${c.kpi?`<span style="font-size:13px"><strong>Indicador:</strong> ${esc(c.kpi)}</span>`:''}${c.pid===S.pid?`<span class="meta"><span>Tuyo</span><button type="button" data-del="contramedidas/${esc(c.id)}">Borrar</button></span>`:''}</div>`).join('')||'<p class="empty">Sin contramedidas.</p>'}</div>`}).join('')}</div>`;
+  <div class="a3grid">
+    ${sec(1,'El desafío compartido','¿Qué situación estamos viviendo varios miembros?',`<p>${esc(desafioA())}</p>`,true)}
+    ${sec(2,'Evidencias','¿Cómo se manifiesta en mi realidad?',list(itemsA('evid'),it=>`<li>${esc(it.texto)}</li>`)||empty('Se completa en la Foto actual.'),true)}
+    ${sec(3,'Lo que hacemos hoy','¿Qué acciones o prácticas estamos utilizando?',list(itemsA('hoy'),it=>`<li>${esc(it.texto)}</li>`)||empty('Se completa en la Foto actual.'),true)}
+    ${sec(4,'Aprendizajes emergentes','¿Qué patrones o hallazgos en común aparecen?',(top.length?`<strong style="font-size:13px">Causas más votadas en el Ishikawa</strong>${list(top,t=>`<li>${esc(t.texto)} <span class="muted">(${t.v})</span></li>`)}`:'')+(contraOf('A','aprend').map(c=>itemNote(c,'contramedidas')).join(''))||empty('Votá causas en el Ishikawa o agregá aprendizajes.'),true)}
+    ${sec(5,'Hipótesis del grupo','¿Qué creemos que puede estar explicando esta situación?',contraOf('A','hip').map(c=>itemNote(c,'contramedidas')).join('')||empty('Sin hipótesis todavía.'))}
+    ${sec(6,'Experimentos acordados','¿Qué probará cada miembro antes de la próxima reunión?',exps.map(c=>itemNote(c,'contramedidas',`<span style="font-size:13px">${c.concepto?`<b>Cuándo:</b> ${esc(c.concepto)} · `:''}${c.kpi?`<b>Cómo sabré:</b> ${esc(c.kpi)}`:''}</span>`)).join('')||empty('Sin experimentos todavía.'))}
+    ${sec(7,'Seguimiento','¿Qué resultado esperamos observar? Cada grupo fija sus fechas.',contraOf('A','res').map(c=>itemNote(c,'contramedidas')).join('')||empty('Sin resultados esperados todavía.'))}
+    ${sec(8,'¿Qué aprendí?','Lo que salió bien y lo que no salió como esperaba.','<p class="muted" style="font-size:14px">Se completa en el seguimiento, en la próxima reunión: acción que probé, resultado observado, aprendizaje principal y próximo paso.</p>')}
+  </div>`;
+},
+b_ishikawa(){
+  const mineCauses = id => S.causas.filter(c=>c.caso==='B' && c.cat===id);
+  const bone = c => `<div class="bone ${c.side==='b'?'b':''}"><h3>${esc(c.t)}</h3>${c.seeds.map(s=>`<div class="note seed"><span>${esc(s.t)}</span><span class="src">${esc(s.s)}</span>${vbtn(s.id,'B')}</div>`).join('')}${mineCauses(c.id).map(it=>itemNote(it,'causas',vbtn(it.id,'B'))).join('')}</div>`;
+  return consigna('Fase 7 · Caso B','Caso del coordinador: un grupo REG que pierde profundidad',[
+    'Leé el caso en el recuadro oscuro. Las causas con borde punteado salen textualmente de las guías REG.',
+    'Tocá <b>Votar</b> en las 3 causas que, según tu experiencia, más pesan. Las más votadas pasan al A3.',
+    'Si ves otra causa, elegí la <b>Espina</b>, escribila en <b>Otra causa</b> y tocá <b>Agregar causa</b>.'],
+    'Facilitación avanzada',
+    'Evitar la catarsis: cuando el grupo solo describe problemas sin generar aprendizaje. Usar el desacuerdo como fuente de aprendizaje y no como competencia de opiniones.', 'Guía REG Coordinador · Facilitación avanzada')+
+  `<div class="hero"><span class="eyebrow" style="color:#F2A65A">Caso B · Calidad y madurez REG</span><h2>El grupo muestra las alertas tempranas que describe la guía</h2>
+    <p>Reuniones repetitivas, falta de profundidad, dependencia del coordinador o ausencia de casos. ¿Qué está detrás?</p>
+    <span class="src" style="color:#B9C3D0">Fuente: Guía REG Coordinador · Calidad y madurez REG · Alertas tempranas</span></div>
+  <div class="card"><div class="form">
+    <label for="bCat">Espina</label><select id="bCat">${CATS_B.map(c=>`<option value="${c.id}">${esc(c.t)}</option>`).join('')}</select>
+    <input id="bTxt" type="text" maxlength="140" placeholder="Otra causa (máx. 140 caracteres)" aria-label="Otra causa" style="flex:1 1 280px">
+    <button class="primary" id="bAdd" type="button">Agregar causa</button></div>
+    <div class="row">${leftTag('B','Votos')}</div></div>
+  <div class="fish">
+    <div class="grid3">${CATS_B.filter(c=>c.side==='a').map(bone).join('')}</div>
+    <div class="spine"><div class="lineh"></div><div class="effect"><small>EFECTO</small>Reuniones repetitivas, sin profundidad, dependientes del coordinador o sin casos</div></div>
+    <div class="grid3">${CATS_B.filter(c=>c.side==='b').map(bone).join('')}</div>
+  </div>`;
+},
+b_a3(){
+  const pool = SEEDS_B.map(s=>({id:s.id, texto:s.t})).concat(S.causas.filter(c=>c.caso==='B').map(c=>({id:c.id, texto:c.texto})));
+  const top = ranked(pool).filter(x=>x.v>0).slice(0,3);
+  const sec = (n,t,q,body,auto) => `<div class="a3box ${auto?'auto':''}"><h3>${n} · ${t}</h3><span class="muted" style="font-size:13px">${q}</span>${body}</div>`;
+  const opciones = OPC_B.map(o=>`<div class="note seed"><span>${esc(o.t)}</span><span class="src">Guía Coordinador · Intervenciones</span>${vbtn(o.id,'BO')}</div>`).join('') + contraOf('B','opc').map(c=>itemNote(c,'contramedidas',vbtn(c.id,'BO'))).join('');
+  const ayuda = AYUDA.map(a=>`<div class="note seed" style="flex-direction:row;justify-content:space-between;align-items:center"><span>${esc(a.t)}</span>${vbtn(a.id,'BH')}</div>`).join('');
+  const plan = p => contraOf('B','plan').filter(c=>c.concepto===p).map(c=>itemNote(c,'contramedidas',c.kpi?`<span style="font-size:13px"><b>Cómo sabré:</b> ${esc(c.kpi)}</span>`:'')).join('');
+  return consigna('Fase 8 · Caso B','A3 REG del coordinador',[
+    'Los recuadros naranjas se completan solos: el desafío, el resultado ideal y las causas más votadas del Ishikawa. Es la misma estructura del <b>Ejemplo · A3</b>.',
+    'En la sección 5 votá hasta 2 opciones y en la 6 marcá la ayuda que pedirías al grupo.',
+    'En <b>Nuevo aporte</b> elegí la sección (mirando más profundo, otra opción o paso 30-60-90), escribí el texto y tocá <b>Agregar</b>.'],
+    'Seguimiento 30-60-90 días',
+    '30 días: implementación. 60 días: evidencia y ajustes. 90 días: consolidación y transferencia.', 'Guía REG Coordinador · Guía A3 REG')+
+  `<div class="card"><h3>Nuevo aporte al A3</h3><div class="form">
+    <label for="bSec">Sección</label><select id="bSec"><option value="prof">4 · Mirando más profundo</option><option value="opc">5 · Otra opción</option><option value="plan30">7 · Paso a 30 días</option><option value="plan60">7 · Paso a 60 días</option><option value="plan90">7 · Paso a 90 días</option></select>
+    <input id="bAcc" type="text" maxlength="160" placeholder="Texto del aporte" aria-label="Texto del aporte" style="flex:1 1 100%">
+    <input id="bKpi" type="text" maxlength="80" placeholder="Para pasos 30-60-90: ¿cómo sabré si funcionó?" aria-label="¿Cómo sabré si funcionó?" style="flex:1 1 280px">
+    <button class="primary" id="bAddA3" type="button">Agregar</button></div></div>
+  <div class="a3grid">
+    ${sec(1,'¿Cuál es el desafío?','¿Cómo hago para...?','<p>¿Cómo hago para que mi grupo REG transforme las conversaciones en aprendizajes, decisiones y acciones concretas?</p><span class="src">Redactado a partir del principio «Compromiso con la acción» (Guía Miembros).</span>',true)}
+    ${sec(2,'¿Qué me gustaría que ocurriera?','Mi resultado ideal: los indicadores de éxito de la guía.','<ul class="ulist"><li>Hay aprendizajes colectivos explícitos.</li><li>Existen experimentos acordados.</li><li>El grupo revisa resultados posteriormente.</li><li>Las experiencias se convierten en conocimiento transferible.</li></ul><span class="src">Guía REG Desafíos Compartidos · Indicadores de éxito</span>',true)}
+    ${sec(3,'Comprendiendo la situación','¿Qué está ocurriendo hoy? Causas más votadas en el Ishikawa.',top.length?`<ol class="ulist">${top.map(t=>`<li>${esc(t.texto)} <span class="muted">(${t.v})</span></li>`).join('')}</ol>`:empty('Se completa con la votación de la pestaña anterior.'),true)}
+    ${sec(4,'Mirando más profundo','¿Qué creo que está detrás? ¿Qué supuestos estoy haciendo? ¿Qué no estoy viendo?',contraOf('B','prof').map(c=>itemNote(c,'contramedidas')).join('')||empty('Sin aportes todavía.'))}
+    ${sec(5,'Opciones que estoy considerando','Votá hasta 2. '+leftTag('BO','Votos'),opciones)}
+    ${sec(6,'Ayuda que necesito del grupo','Marcá lo que pedirías a tus pares.',ayuda)}
+    ${sec(7,'Próximos pasos 30-60-90','Implementación · evidencia y ajustes · consolidación y transferencia.',`<strong style="font-size:13px">30 días</strong>${plan('plan30')||empty('—')}<strong style="font-size:13px">60 días</strong>${plan('plan60')||empty('—')}<strong style="font-size:13px">90 días</strong>${plan('plan90')||empty('—')}`)}
+    ${sec('✓','Checklist de excelencia del coordinador','Para revisar antes y después de cada encuentro.','<ul class="ulist"><li>Prepara reuniones individuales.</li><li>Prepara anfitriones.</li><li>Facilita aprendizaje.</li><li>Registra compromisos.</li><li>Asegura seguimiento.</li><li>Promueve mejora continua.</li></ul><span class="src">Guía REG Coordinador</span>',true)}
+  </div>`;
 },
 cierre(){
   const mine = S.cierre.find(c=>c.id===S.pid) || {};
-  const valid = S.cierre.filter(cuenta);
-  const counts = SIGNALS.map(s=>({t:s, v:valid.filter(c=>c.senal===s).length}));
-  return consigna('Fase 7','Alerta temprana: ¿qué vas a vigilar en tu próximo proyecto?',[
-    'En <b>Señal temprana</b> elegí la que más ves (o podrías ver) en tus proyectos.',
-    'En <b>Mi compromiso para esta semana</b> escribí una acción concreta.',
-    'Tocá <b>Grabar</b>. El facilitador lee 3 compromisos para cerrar.'],
-    'Detectar antes de que caigan los números',
-    'Los problemas de identidad aparecen antes que los atrasos: primero en el lenguaje y en la conducta del grupo. Cuando el equipo dice “su fecha” en lugar de “nuestra fecha”, el liderazgo ya se está perdiendo.')+
+  const list = S.cierre.filter(c=>c.compromiso);
+  return consigna('Fase 9','Mi compromiso: de la conversación a la acción',[
+    'En <b>¿Qué voy a probar?</b> escribí un experimento pequeño y concreto.',
+    'Completá <b>¿Cuándo?</b>, <b>¿Cómo sabré si funcionó?</b> y <b>Lo más valioso que me llevo</b>.',
+    'Tocá <b>Grabar</b>. En la próxima reunión vas a contar: acción que probé, resultado observado, aprendizaje principal y próximo paso.'],
+    'Preguntas poderosas REG',
+    PREGUNTAS.join(' '), 'Guía REG Coordinador · Guía REG Desafíos Compartidos · Etapas 6 y 7')+
   `<div class="grid2">
-   <div class="card"><h3>Tu señal y tu compromiso</h3>
-     <label for="sSen" class="muted" style="font-size:13px;font-weight:600">Señal temprana</label>
-     <select id="sSen"><option value="">Elegí…</option>${SIGNALS.map(s=>`<option ${mine.senal===s?'selected':''}>${esc(s)}</option>`).join('')}</select>
-     <label for="sComp" class="muted" style="font-size:13px;font-weight:600">Mi compromiso para esta semana</label>
-     <textarea id="sComp" maxlength="200" placeholder="Ej.: abrir la reunión de avance preguntando qué necesita cada área">${esc(mine.compromiso||'')}</textarea>
-     <button class="primary" id="sSave" type="button">Grabar</button>
+   <div class="card"><h3>Mi compromiso</h3>
+     <label for="kComp" class="muted" style="font-size:13px;font-weight:600">¿Qué voy a probar?</label>
+     <textarea id="kComp" maxlength="200" placeholder="Un experimento pequeño, no un compromiso gigante">${esc(mine.compromiso||'')}</textarea>
+     <label for="kCuando" class="muted" style="font-size:13px;font-weight:600">¿Cuándo?</label>
+     <input id="kCuando" type="text" maxlength="80" value="${esc(mine.cuando||'')}">
+     <label for="kComo" class="muted" style="font-size:13px;font-weight:600">¿Cómo sabré si funcionó?</label>
+     <input id="kComo" type="text" maxlength="120" value="${esc(mine.comoSabre||'')}">
+     <label for="kVal" class="muted" style="font-size:13px;font-weight:600">Lo más valioso que me llevo</label>
+     <input id="kVal" type="text" maxlength="140" value="${esc(mine.valioso||'')}">
+     <button class="primary" id="kSave" type="button">Grabar</button>
    </div>
-   <div class="card"><h3>Señales del grupo</h3>${bars(counts)}
-     <h3>Compromisos (${valid.filter(c=>c.compromiso).length})</h3>
-     ${valid.filter(c=>c.compromiso).map(c=>`<div class="note"><span>${esc(c.compromiso)}</span></div>`).join('')||'<p class="empty">Todavía no hay compromisos.</p>'}
+   <div class="card"><h3>Compromisos del grupo (${list.length})</h3>
+     ${list.map(c=>`<div class="note"><span>${esc(c.compromiso)}</span><span style="font-size:13px">${c.cuando?`<b>Cuándo:</b> ${esc(c.cuando)} · `:''}${c.comoSabre?`<b>Cómo sabré:</b> ${esc(c.comoSabre)}`:''}</span>${c.valioso?`<span class="muted" style="font-size:13px">Me llevo: ${esc(c.valioso)}</span>`:''}</div>`).join('')||empty('Todavía no hay compromisos.')}
    </div></div>`;
 },
 };
 
 // ---------- grabar ----------
-async function addCausa(){ const txt=$('#cTxt')?.value.trim(); if(!txt) return null; const ok=await safe(S.db.collection('causas').add({cat:$('#cCat').value, texto:txt.slice(0,140), pid:S.pid, ts:Date.now(), ...me()})); if(ok) $('#cTxt').value=''; return ok }
-async function addContra(){ const acc=$('#aAcc')?.value.trim(); if(!acc) return null; const ok=await safe(S.db.collection('contramedidas').add({paso:$('#aPaso').value, accion:acc, concepto:$('#aConc').value, kpi:$('#aKpi').value.trim(), pid:S.pid, ts:Date.now(), ...me()})); if(ok){ $('#aAcc').value=''; $('#aKpi').value=''; } return ok }
-async function savePorques(){ const m=me(); const d={causa:$('#wCausa').value, raiz:$('#wRaiz').value.trim(), concepto:$('#wConc').value, ...m, ts:Date.now()}; [1,2,3,4,5].forEach(i=>d['p'+i]=$('#w'+i).value.trim());
-  if(!d.causa && !d.raiz && ![1,2,3,4,5].some(i=>d['p'+i])) return null;
-  if(!d.causa){toast('Elegí la causa que vas a analizar.'); return false}
-  return safe(S.db.doc('porques/'+S.pid).set(d)); }
-async function saveCierre(){ const sen=$('#sSen').value, comp=$('#sComp').value.trim().slice(0,200); if(!sen && !comp) return null; return safe(S.db.doc('cierre/'+S.pid).set({senal:sen, compromiso:comp, ...me()})); }
-async function saveDiagSelects(){ const hoy=$('#pHoy').value, debe=$('#pDebe').value; if(!hoy && !debe) return null; const cur=S.diag.find(d=>d.id===S.pid)||{}; const b={...cur, ...me(), hoy, debe}; delete b.id; return safe(S.db.doc('diag/'+S.pid).set(b)); }
+async function addFoto(){ const t=$('#fTxt')?.value.trim(); if(!t) return null; const ok=await safe(S.db.collection('causas').add({caso:'A', tipo:$('#fTipo').value, texto:t.slice(0,140), pid:S.pid, ts:Date.now()})); if(ok) $('#fTxt').value=''; return ok }
+async function addCausaA(){ const t=$('#cTxt')?.value.trim(); if(!t) return null; const ok=await safe(S.db.collection('causas').add({caso:'A', tipo:'causa', cat:$('#cCat').value, texto:t.slice(0,140), pid:S.pid, ts:Date.now()})); if(ok) $('#cTxt').value=''; return ok }
+async function addCausaB(){ const t=$('#bTxt')?.value.trim(); if(!t) return null; const ok=await safe(S.db.collection('causas').add({caso:'B', tipo:'causa', cat:$('#bCat').value, texto:t.slice(0,140), pid:S.pid, ts:Date.now()})); if(ok) $('#bTxt').value=''; return ok }
+async function addA3A(){ const t=$('#aAcc')?.value.trim(); if(!t) return null; const sec=$('#aSec').value;
+  const d={caso:'A', sec, accion:t.slice(0,160), pid:S.pid, ts:Date.now()};
+  if(sec==='exp'){ d.concepto=$('#aCuando').value.trim().slice(0,80); d.kpi=$('#aKpi').value.trim().slice(0,80); }
+  const ok=await safe(S.db.collection('contramedidas').add(d)); if(ok){ ['aAcc','aCuando','aKpi'].forEach(i=>{const e=$('#'+i); if(e) e.value=''}); } return ok }
+async function addA3B(){ const t=$('#bAcc')?.value.trim(); if(!t) return null; let sec=$('#bSec').value; const d={caso:'B', accion:t.slice(0,160), pid:S.pid, ts:Date.now()};
+  if(sec.startsWith('plan')){ d.concepto=sec; d.kpi=$('#bKpi').value.trim().slice(0,80); sec='plan'; }
+  d.sec=sec; const ok=await safe(S.db.collection('contramedidas').add(d)); if(ok){ ['bAcc','bKpi'].forEach(i=>{const e=$('#'+i); if(e) e.value=''}); } return ok }
+async function saveCierre(){ const comp=$('#kComp').value.trim().slice(0,200); if(!comp) return null;
+  return safe(S.db.doc('cierre/'+S.pid).set({compromiso:comp, cuando:$('#kCuando').value.trim().slice(0,80), comoSabre:$('#kComo').value.trim().slice(0,120), valioso:$('#kVal').value.trim().slice(0,140), ts:Date.now()})); }
 $('#saveAll').addEventListener('click', async () => {
   if(!needDb()) return;
-  const fn = {caso:saveResp, ishikawa:addCausa, porques:savePorques, a3:addContra, cierre:saveCierre, diagnostico:saveDiagSelects}[S.view];
+  const fn = {a_foto:addFoto, a_ishikawa:addCausaA, a_a3:addA3A, b_ishikawa:addCausaB, b_a3:addA3B, cierre:saveCierre}[S.view];
   const r = fn ? await fn() : null;
   if(r===false) return;
-  markSaved(); toast('Cambios grabados');
+  markSaved(); toast(r ? 'Cambios grabados' : 'No había nada nuevo para grabar en esta pestaña');
 });
 
 // ---------- render ----------
@@ -524,13 +777,11 @@ function keepFocus(fn){
   fn();
   if(id){const el=document.getElementById(id); if(el && $('#main').contains(el)){ if(val!=null && el.tagName!=='SELECT' && el.value!==val) el.value=val; el.focus(); try{ if(sel!=null) el.setSelectionRange(sel,sel)}catch(e){} }}
 }
+const DRAFT_IDS=['fTipo','fTxt','cCat','cTxt','aSec','aAcc','aCuando','aKpi','bCat','bTxt','bSec','bAcc','bKpi','kComp','kCuando','kComo','kVal'];
 function renderPanel(){
-  const drafts={}; ['rOtro','cTxt','aAcc','aKpi','w1','w2','w3','w4','w5','wRaiz','sComp','cCat','aPaso','aConc','wCausa','wConc','sSen','pHoy','pDebe'].forEach(id=>{const el=document.getElementById(id); if(el) drafts[id]=el.value});
-  const rSel=document.querySelector('input[name="rOp"]:checked'); const rVal=rSel?rSel.value:null;
+  const drafts={}; DRAFT_IDS.forEach(id=>{const el=document.getElementById(id); if(el) drafts[id]=el.value});
   keepFocus(()=>{ $('#main').innerHTML = `<div class="panel">${PANELS[S.view]()}${stepNav()}</div>`; });
   Object.entries(drafts).forEach(([id,v])=>{const el=document.getElementById(id); if(el && v && el!==document.activeElement) el.value=v});
-  if(rVal){ const r=document.querySelector('input[name="rOp"][value="'+rVal+'"]'); if(r) r.checked=true; }
-  const rc=$('#rCount'), ro=$('#rOtro'); if(rc&&ro) rc.textContent=ro.value.length+'/'+OTRO_MAX;
 }
 let renderQueued=false;
 function scheduleRender(){ if(renderQueued) return; renderQueued=true; requestAnimationFrame(()=>{renderQueued=false; renderNav(); renderPanel();}); }
@@ -538,54 +789,51 @@ function scheduleRender(){ if(renderQueued) return; renderQueued=true; requestAn
 $('#main').addEventListener('click', async e => {
   const t = e.target.closest('button'); if(!t) return;
   if(t.dataset.goto){ S.view=t.dataset.goto; renderNav(); renderPanel(); window.scrollTo({top:0, behavior:'smooth'}); return; }
-  const m = me();
-  if(t.id==='rSave'){ if(!needDb()) return; const r=await saveResp(); if(r) toast('Respuesta grabada'); else if(r===null) toast('Elegí una opción o escribí tu respuesta.'); }
-  else if(t.id==='cAdd'){ if(!needDb()) return; const r=await addCausa(); if(r===null) toast('Escribí la causa antes de agregarla.'); else if(r) toast('Causa agregada'); }
-  else if(t.dataset.del){ if(!needDb()) return; await safe(S.db.doc(t.dataset.del).delete(),'Borrado'); }
-  else if(t.dataset.vote){ if(!needDb()) return; const cid=t.dataset.vote; const ref=S.db.doc('votos/'+canon(S.pid+'_'+cid));
-    const on=S.votos.some(v=>v.pid===S.pid&&v.causa===cid);
-    if(on) await safe(ref.delete()); else { if(S.votos.filter(v=>v.pid===S.pid).length>=MAX_VOTES){toast('Ya usaste tus '+MAX_VOTES+' votos.');return} await safe(ref.set({pid:S.pid, causa:cid})); } }
-  else if(t.id==='wSave'){ if(!needDb()) return; const r=await savePorques(); if(r) toast('Análisis grabado'); else if(r===null) toast('Completá al menos la causa y un porqué.'); }
-  else if(t.dataset.dim){ if(!needDb()) return; const cur=S.diag.find(d=>d.id===S.pid)||{}; const body={...cur, ...m, [t.dataset.dim]:Number(t.dataset.val)}; delete body.id; await safe(S.db.doc('diag/'+S.pid).set(body)); }
-  else if(t.id==='aAdd'){ if(!needDb()) return; const r=await addContra(); if(r===null) toast('Escribí la acción concreta.'); else if(r) toast('Contramedida agregada'); }
-  else if(t.id==='sSave'){ if(!needDb()) return; const r=await saveCierre(); if(r) toast('Grabado'); else if(r===null) toast('Elegí una señal o escribí tu compromiso.'); }
+  if(!needDb()) return;
+  const say = (r, ok, none) => { if(r) toast(ok); else if(r===null) toast(none); };
+  if(t.dataset.comp){ await safe(S.db.doc('respuestas_caso/'+S.pid).set({op:t.dataset.comp, otro:''}), 'Elección grabada'); }
+  else if(t.id==='fAdd') say(await addFoto(),'Aporte agregado','Escribí tu respuesta antes de agregarla.');
+  else if(t.id==='cAdd') say(await addCausaA(),'Causa agregada','Escribí la causa antes de agregarla.');
+  else if(t.id==='bAdd') say(await addCausaB(),'Causa agregada','Escribí la causa antes de agregarla.');
+  else if(t.id==='aAdd') say(await addA3A(),'Aporte agregado al A3','Escribí el texto del aporte.');
+  else if(t.id==='bAddA3') say(await addA3B(),'Aporte agregado al A3','Escribí el texto del aporte.');
+  else if(t.id==='kSave') say(await saveCierre(),'Compromiso grabado','Escribí qué vas a probar.');
+  else if(t.dataset.del){ await safe(S.db.doc(t.dataset.del).delete(),'Borrado'); }
+  else if(t.dataset.vote){ const id=t.dataset.vote, g=t.dataset.g; const ref=S.db.doc('votos/'+canon(S.pid+'_'+id));
+    if(iVoted(id)) await safe(ref.delete()); else { if(myVotes(g).length>=MAXV[g]){ toast('Ya usaste tus votos de esta sección.'); return } await safe(ref.set({pid:S.pid, causa:id, g})); } }
 });
-$('#main').addEventListener('change', async e => {
-  const t=e.target; if(t.id==='pHoy'||t.id==='pDebe'){ if(!needDb()) return; await saveDiagSelects(); }
-});
-$('#main').addEventListener('input', e => { if(e.target.id==='rOtro'){ const c=$('#rCount'); if(c) c.textContent=e.target.value.length+'/'+OTRO_MAX; const r=document.querySelector('input[name="rOp"][value="otra"]'); if(r && e.target.value.trim()) r.checked=true; } });
-$('#main').addEventListener('keydown', e => { if(e.key==='Enter' && (e.target.id==='cTxt'||e.target.id==='aAcc')){ e.preventDefault(); (e.target.id==='cTxt'?$('#cAdd'):$('#aAdd')).click(); } });
-
+$('#main').addEventListener('keydown', e => { const map={fTxt:'#fAdd', cTxt:'#cAdd', bTxt:'#bAdd', aAcc:'#aAdd', bAcc:'#bAddA3'}; if(e.key==='Enter' && map[e.target.id]){ e.preventDefault(); $(map[e.target.id]).click(); } });
 
 // ---------- facilitador ----------
-function writeEstado(patch){ return safe(S.db.doc('estado/sesion').set({fase:S.fase, ...patch})); }
+function writeEstado(patch){ return safe(S.db.doc('estado/sesion').set({fase:S.fase, desafioA:S.desafioA, ...patch})); }
+const COLS = ['respuestas_caso','causas','votos','porques','diag','contramedidas','cierre'];
+async function wipeAll(){
+  for(const col of COLS){ const snap=await S.db.collection(col).get(); let b=S.db.batch(), n=0; for(const d of snap.docs){ b.delete(d.ref); if(++n===400){ await b.commit(); b=S.db.batch(); n=0; } } if(n) await b.commit(); }
+  await S.db.doc('estado/sesion').set({fase:'filosofia', desafioA:'retencion'});
+}
 let facilReady=false;
 function setupFacil(){
   $('#facilLogin').hidden=true; $('#facil').hidden=false; if(facilReady) return; facilReady=true;
-  $('#fFase').innerHTML = PHASES.filter(p=>p.id!=='guia').map(p=>`<option value="${p.id}">${p.n} · ${esc(p.t)}</option>`).join('');
+  $('#fFase').innerHTML = PHASES.map(p=>`<option value="${p.id}">${p.n} · ${esc(p.t)}</option>`).join('');
   $('#fFase').value=S.fase;
+  $('#fDesafio').innerHTML = DESAFIOS.map(d=>`<option value="${d.id}">${esc(d.t)}</option>`).join('');
+  $('#fDesafio').value=S.desafioA;
   $('#fSet').onclick = async () => { if(await writeEstado({fase:$('#fFase').value})) toast('Todos fueron llevados a la fase'); };
+  $('#fDesafio').onchange = async () => { if(await writeEstado({desafioA:$('#fDesafio').value})) toast('Desafío compartido actualizado'); };
   const zone=$('#fResetZone');
-  const ask = () => { zone.innerHTML = `<span>¿Borrar todas las respuestas, votos y escritos y volver a la fase 1?</span><button id="fYes" type="button">Sí, reiniciar</button><button id="fNo" type="button">Cancelar</button>`;
+  const ask = () => { zone.innerHTML = `<span>¿Borrar todos los aportes y volver a la fase 1?</span><button id="fYes" type="button">Sí, reiniciar</button><button id="fNo" type="button">Cancelar</button>`;
     $('#fNo').onclick = () => { zone.innerHTML='<button id="fReset" type="button">Reiniciar todo de cero…</button>'; $('#fReset').onclick=ask; };
     $('#fYes').onclick = async () => { zone.innerHTML='<span>Reiniciando…</span>';
-      try{ for(const col of ['respuestas_caso','causas','votos','porques','diag','contramedidas','cierre']){ const snap=await S.db.collection(col).get(); let b=S.db.batch(), n=0; for(const d of snap.docs){ b.delete(d.ref); if(++n===400){ await b.commit(); b=S.db.batch(); n=0; } } if(n) await b.commit(); }
-        await S.db.doc('estado/sesion').set({fase:'caso'}); toast('Taller reiniciado de cero'); }catch(e){ toast('No se pudo reiniciar todo. Probá de nuevo.'); }
+      try{ await wipeAll(); toast('Taller reiniciado de cero'); }catch(e){ toast('No se pudo reiniciar todo. Probá de nuevo.'); }
       zone.innerHTML='<button id="fReset" type="button">Reiniciar todo de cero…</button>'; $('#fReset').onclick=ask; };
   };
   $('#fReset').onclick = ask;
-}
-
-
-async function wipeAll(){
-  for(const col of ['respuestas_caso','causas','votos','porques','diag','contramedidas','cierre']){ const snap=await S.db.collection(col).get(); let b=S.db.batch(), n=0; for(const d of snap.docs){ b.delete(d.ref); if(++n===400){ await b.commit(); b=S.db.batch(); n=0; } } if(n) await b.commit(); }
-  await S.db.doc('estado/sesion').set({fase:'caso'});
 }
 function closeTopReset(){ const z=$('#topResetZone'); z.hidden=true; z.innerHTML=''; }
 $('#topReset').addEventListener('click', () => {
   if(!needDb()) return;
   const z=$('#topResetZone'); z.hidden=false;
-  z.innerHTML = `<strong>¿Borrar todas las respuestas, votos y escritos de todos los participantes y volver a la fase 1?</strong>`
+  z.innerHTML = `<strong>¿Borrar todos los aportes, votos y compromisos de todos los participantes y volver a la fase 1?</strong>`
     + (S.canEdit ? '' : `<label for="rzClave">Clave de facilitador</label><input id="rzClave" type="password" maxlength="60" autocomplete="off" style="width:170px">`)
     + `<button id="rzYes" type="button" class="danger">Sí, borrar todo</button><button id="rzNo" type="button">Cancelar</button>`;
   $('#rzNo').onclick = closeTopReset;
@@ -616,28 +864,27 @@ function showLogin(){
 (async () => {
   const cfg = window.FIREBASE_CONFIG || {};
   if(!window.firebase){ offline('No se pudo cargar Firebase. Revisá la conexión a internet.'); return; }
-  if(!cfg.apiKey || String(cfg.apiKey).includes('PEGAR')){ offline('Falta configurar Firebase: completá FIREBASE_CONFIG en el archivo.'); return; }
   try{
     firebase.initializeApp(cfg);
     const cred = await firebase.auth().signInAnonymously();
     S.pid = cred.user.uid;
-  }catch(e){ const c=(e&&e.code)||'sin código'; const hint = location.protocol==='file:' ? 'Abrí la página desde el link de GitHub, no como archivo.' : (c.includes('operation-not-allowed')||c.includes('admin-restricted') ? 'Activá “Anónimo” en Authentication y tocá Guardar.' : (c.includes('unauthorized-domain')||c.includes('requests-from-referer') ? 'Agregá tu dominio de GitHub en Authentication > Configuración > Dominios autorizados.' : (c.includes('api-key')||c.includes('configuration-not-found') ? 'Revisá FIREBASE_CONFIG y que Authentication esté iniciado (botón Comenzar).' : 'Revisá Authentication en Firebase.'))); offline('No se pudo iniciar sesión anónima ('+c+'). '+hint); console.error(e); return; }
+  }catch(e){ const c=(e&&e.code)||'sin código'; const hint = location.protocol==='file:' ? 'Abrí la página desde el link de GitHub, no como archivo.' : (c.includes('operation-not-allowed')||c.includes('admin-restricted') ? 'Activá “Anónimo” en Authentication y tocá Guardar.' : 'Revisá Authentication en Firebase.'); offline('No se pudo iniciar sesión anónima ('+c+'). '+hint); console.error(e); return; }
   const db = firebase.firestore();
   S.db = db; $('#conn').textContent='Tablero compartido en vivo'; $('#conn').className='status live';
   try{ const f = await db.doc('facilitadores/'+S.pid).get(); if(f.exists) S.canEdit = true; }catch(e){}
   const lost = (e) => { console.error(e); offline('Se cortó la conexión. Recargá la página.'); };
   const sub = (col, key) => db.collection(col).onSnapshot(s => { S[key] = s.docs.map(d=>({id:d.id, ...d.data()})); scheduleRender(); }, lost);
-  sub('respuestas_caso','resp'); sub('causas','causas'); sub('votos','votos'); sub('porques','porques'); sub('diag','diag'); sub('contramedidas','contra'); sub('cierre','cierre');
+  sub('respuestas_caso','resp'); sub('causas','causas'); sub('votos','votos'); sub('contramedidas','contra'); sub('cierre','cierre');
   let first = true;
-  db.doc('estado/sesion').onSnapshot(s => { const d = s.exists ? s.data() : {}; const prev=S.fase; S.fase = d.fase || 'caso';
+  db.doc('estado/sesion').onSnapshot(s => { const d = s.exists ? s.data() : {}; const prev=S.fase;
+    S.fase = PHASES.some(p=>p.id===d.fase) ? d.fase : 'filosofia'; S.desafioA = DESAFIOS.some(x=>x.id===d.desafioA) ? d.desafioA : 'retencion';
     if(first || prev!==S.fase){ if(!S.canEdit || first) S.view = S.fase; first=false; }
-    if(S.canEdit){ $('#fFase').value = S.fase; } scheduleRender(); }, lost);
+    if(S.canEdit){ $('#fFase').value = S.fase; $('#fDesafio').value = S.desafioA; } scheduleRender(); }, lost);
   if(S.canEdit) setupFacil(); else showLogin();
   window.addEventListener('hashchange', showLogin);
   scheduleRender();
 })();
 })();
 </script>
-
 </body>
 </html>
