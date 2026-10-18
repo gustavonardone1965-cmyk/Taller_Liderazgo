@@ -133,6 +133,27 @@ nav.phases button.now .n::after{content:" · en curso";color:var(--accent);font-
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--navy);color:var(--onnavy);padding:10px 16px;border-radius:8px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s}
 .toast.show{opacity:1}
 .confirm{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.mx-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:8px}
+.mx{display:grid;grid-template-columns:28px 1.15fr 1fr 1fr 1fr 1fr;gap:6px;min-width:820px;align-items:stretch}
+.mx .ax-y{grid-row:2 / span 3;writing-mode:vertical-rl;transform:rotate(180deg);text-align:center;font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--muted);border-right:2px solid var(--muted);padding-right:4px}
+.mx .hd{font-size:13px;font-weight:700;text-align:center;align-self:end;padding:4px 2px}
+.mx .rl{border-radius:8px;padding:10px 12px;color:#fff}
+.mx .rl b{display:block;font-size:17px;font-family:Cambria,Georgia,serif;margin-bottom:4px}
+.mx .rl span{display:block;font-size:13px;line-height:1.35}
+.mx .rl i{display:block;font-size:12px;margin-top:6px;color:#FDE7C2;font-weight:600}
+.mx .c{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px;display:flex;flex-direction:column;justify-content:center;text-align:center;font-size:14px;line-height:1.35}
+.mx .c.hot{background:rgba(13,115,119,.13);border:2px solid #0D7377;font-weight:700}
+.mx .c.hot small{display:block;margin-top:6px;font-size:11px;letter-spacing:.08em;color:#0D7377;font-weight:700}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .mx .c.hot small{color:#5FD0D3}}
+:root[data-theme="dark"] .mx .c.hot small{color:#5FD0D3}
+.mx .who{background:var(--surface2);border-radius:8px;padding:10px;font-size:13px;line-height:1.4;display:flex;align-items:center}
+.mx .ax-x{grid-column:3 / span 3;text-align:center;font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--muted);border-top:2px solid var(--muted);padding-top:4px}
+.mx-k{color:#0D7377}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .mx-k{color:#5FD0D3}}
+:root[data-theme="dark"] .mx-k{color:#5FD0D3}
+.mx-hint{display:none;font-size:13px;margin:4px 0 0}
+@media (max-width:860px){.mx-hint{display:block}}
+.mx-def{background:rgba(13,115,119,.10);border-radius:8px;padding:12px 14px;margin-top:12px;font-size:15px;line-height:1.45}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 
@@ -562,12 +583,37 @@ filosofia(){
   const mine = S.resp.find(r=>r.id===S.pid)||{};
   const counts = COMPETENCIAS.map(c=>({t:c.t, v:S.resp.filter(r=>r.op===c.id).length}));
   return consigna('Fase 1','Filosofía REG: el hacer de Grido',[
-    'Leé las tarjetas de abajo: qué es REG, sus principios, los roles y el ciclo de aprendizaje.',
+    'Empezá por la matriz <b>Qué herramienta para qué problema</b>: explica por qué usamos Ishikawa y A3. Después leé qué es REG, sus principios, los roles y el ciclo.',
     'En <b>¿Qué competencia querés fortalecer?</b> tocá una de las 6 competencias.',
     'Se graba sola. A la derecha ves qué eligió el grupo.'],
     'El éxito de una REG',
     'Se mide por la calidad de los aprendizajes y por las acciones que surgen de ellos.', 'Guía REG Coordinador · Filosofía REG')+
-  `<div class="hero"><span class="eyebrow" style="color:#F2A65A">¿Qué es REG?</span>
+  `<div class="card" id="matriz-herramientas"><span class="eyebrow">Antes de empezar</span>
+    <h3 style="margin-top:4px">Qué herramienta para qué problema</h3>
+    <p class="muted" style="font-size:15px;margin-top:0">No todo problema se resuelve con la misma herramienta: depende de cuánta incertidumbre hay en el contexto y del plazo. Por eso este taller usa Ishikawa y A3, y en esta matriz se ve cuándo sirven y cuándo hace falta otra cosa.</p>
+    <p class="mx-hint muted">Deslizá hacia el costado para ver la matriz completa →</p><div class="mx-wrap"><div class="mx" role="table" aria-label="Matriz de herramientas según incertidumbre y horizonte temporal">
+      <div></div><div></div><div class="hd">Corto plazo · semanas</div><div class="hd">Mediano plazo · meses</div><div class="hd">Largo plazo · años</div><div class="hd">Quién se involucra</div>
+      <div class="ax-y">INCERTIDUMBRE DEL CONTEXTO ⟶</div>
+      <div class="rl" style="background:#C2185B"><b>Complejo</b><span>Alta incertidumbre: la causa se ve recién después de actuar.</span><i>Probar → observar → ajustar</i></div>
+      <div class="c">Experimentos rápidos «seguros de fallar»</div>
+      <div class="c">Design Thinking · Lean Startup (construir-medir-aprender)</div>
+      <div class="c">Planificación por escenarios</div>
+      <div class="who">Muchos actores con miradas distintas. El líder abre la conversación, no trae la respuesta.</div>
+      <div class="rl" style="background:#0D7377"><b>Complicado</b><span>Relativa certidumbre: la causa surge de analizar hechos.</span><i>Observar → analizar → actuar</i></div>
+      <div class="c hot">Ishikawa · 5 porqués · A3 · PDCA<small>ZONA DEL TALLER</small></div>
+      <div class="c hot">A3 de proyecto · DMAIC (Six Sigma)<small>ZONA DEL TALLER</small></div>
+      <div class="c">Hoshin Kanri: despliegue de objetivos</div>
+      <div class="who">El equipo que vive el proceso, con pares que aportan experiencia. El líder facilita el análisis.</div>
+      <div class="rl" style="background:#2E4A72"><b>Claro</b><span>Baja incertidumbre: causa y efecto evidentes.</span><i>Ver → clasificar → aplicar</i></div>
+      <div class="c">Estándar de trabajo · checklist</div>
+      <div class="c">5S · gestión visual · Kaizen diario</div>
+      <div class="c">Sostener estándares con indicadores</div>
+      <div class="who">Quien ejecuta la tarea, con el estándar. El líder asegura que se cumpla.</div>
+      <div></div><div></div><div class="ax-x">HORIZONTE TEMPORAL ⟶</div><div></div>
+    </div></div>
+    <div class="mx-def"><b class="mx-k">Qué problemas resuelven Ishikawa y A3:</b> problemas complicados pero abordables, en un contexto de relativa certidumbre y con horizonte de corto y mediano plazo. La causa existe, se encuentra analizando hechos y la solución se verifica con un experimento. Cuando un experimento muestra que el problema es complejo, el propio ciclo REG (probar, aprender, compartir) es el camino.</div>
+    <span class="src">Caótico (crisis): primero actuar para estabilizar y después analizar. Marco: Cynefin (Snowden y Boone, HBR 2007) y desafíos técnicos vs. adaptativos (Heifetz). Ubicación de herramientas: síntesis Consultnet.</span></div>
+  <div class="hero"><span class="eyebrow" style="color:#F2A65A">¿Qué es REG?</span>
     <h2>Reuniones de Equipos Grido: una comunidad de aprendizaje entre franquiciados</h2>
     <p>Líderes que gestionan franquicias se reúnen para analizar desafíos, intercambiar perspectivas y ayudarse mutuamente a crecer. Creemos que las personas crecen más cuando aprenden junto a otros: cuando una persona crece, también crece su equipo, su franquicia y toda la red.</p>
     <span class="src" style="color:#B9C3D0">Fuente: Guía REG para Miembros · Capítulo 1</span></div>
