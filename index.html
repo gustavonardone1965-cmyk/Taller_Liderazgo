@@ -352,7 +352,12 @@ const store = {get(k){try{return localStorage.getItem(k)}catch(e){return null}},
 function toast(msg){const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove('show'),2400);}
 function needDb(){ if(!S.db){toast('El tablero compartido no está disponible. Revisá el cartel de arriba a la derecha.'); return false} return true }
 function markSaved(){ const d=new Date(); $('#savedAt').textContent='Cambios grabados a las '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
-async function safe(p, ok){ try{ await p; if(ok) toast(ok); markSaved(); return true }catch(e){ console.error(e); toast('No se pudo grabar. Probá de nuevo.'); return false } }
+async function safe(p, ok){
+  let slow; const timer = new Promise(r => { slow = setTimeout(() => r('slow'), 9000); });
+  try{ const r = await Promise.race([p, timer]); clearTimeout(slow);
+    if(r==='slow'){ p.catch(e=>{ console.error(e); toast('Un aporte no se pudo grabar. Revisá la conexión y repetilo.'); }); toast('Sin conexión estable: tu aporte quedó en tu equipo y se envía solo al volver la red.'); return true }
+    if(ok) toast(ok); markSaved(); return true }
+  catch(e){ clearTimeout(slow); console.error(e); const c=(e&&e.code)||''; toast(c.includes('permission') ? 'El tablero rechazó el dato (texto muy largo o sin permiso).' : 'No se pudo grabar. Probá de nuevo.'); return false } }
 function canon(id){return String(id).replace(/[^A-Za-z0-9_\-.~:@+]/g,'_').slice(0,120)}
 const desafioA = () => (DESAFIOS.find(d=>d.id===S.desafioA)||DESAFIOS[0]).t;
 
@@ -400,7 +405,7 @@ function renderNav(){
     b.setAttribute('aria-selected', S.view===ph.id ? 'true':'false');
     if(S.fase===ph.id) b.classList.add('now');
     b.innerHTML = `<span class="n">Fase ${ph.n}${doneFase(ph.id)?' ✓':''}</span><span class="t">${esc(ph.t)}</span>`;
-    b.onclick = () => { S.view=ph.id; renderNav(); renderPanel(); };
+    b.onclick = () => { S.view=ph.id; S.pendingView=null; panelPending=false; renderNav(); renderPanel(); };
     nav.appendChild(b);
   });
 }
@@ -797,9 +802,9 @@ cierre(){
 };
 
 // ---------- grabar ----------
-async function addFoto(){ const t=$('#fTxt')?.value.trim(); if(!t) return null; const ok=await safe(S.db.collection('causas').add({caso:'A', tipo:$('#fTipo').value, texto:t.slice(0,140), pid:S.pid, ts:Date.now()})); if(ok) $('#fTxt').value=''; return ok }
-async function addCausaA(){ const t=$('#cTxt')?.value.trim(); if(!t) return null; const ok=await safe(S.db.collection('causas').add({caso:'A', tipo:'causa', cat:$('#cCat').value, texto:t.slice(0,140), pid:S.pid, ts:Date.now()})); if(ok) $('#cTxt').value=''; return ok }
-async function addCausaB(){ const t=$('#bTxt')?.value.trim(); if(!t) return null; const ok=await safe(S.db.collection('causas').add({caso:'B', tipo:'causa', cat:$('#bCat').value, texto:t.slice(0,140), pid:S.pid, ts:Date.now()})); if(ok) $('#bTxt').value=''; return ok }
+async function addFoto(){ const t=$('#fTxt')?.value.trim(); if(!t) return null; const ok=await safe(S.db.collection('causas').add({caso:'A', tipo:$('#fTipo').value, texto:t.slice(0,140), pid:S.pid, ts:Date.now()})); if(ok){ const e=$('#fTxt'); if(e) e.value=''; } return ok }
+async function addCausaA(){ const t=$('#cTxt')?.value.trim(); if(!t) return null; const ok=await safe(S.db.collection('causas').add({caso:'A', tipo:'causa', cat:$('#cCat').value, texto:t.slice(0,140), pid:S.pid, ts:Date.now()})); if(ok){ const e=$('#cTxt'); if(e) e.value=''; } return ok }
+async function addCausaB(){ const t=$('#bTxt')?.value.trim(); if(!t) return null; const ok=await safe(S.db.collection('causas').add({caso:'B', tipo:'causa', cat:$('#bCat').value, texto:t.slice(0,140), pid:S.pid, ts:Date.now()})); if(ok){ const e=$('#bTxt'); if(e) e.value=''; } return ok }
 async function addA3A(){ const t=$('#aAcc')?.value.trim(); if(!t) return null; const sec=$('#aSec').value;
   const d={caso:'A', sec, accion:t.slice(0,160), pid:S.pid, ts:Date.now()};
   if(sec==='exp'){ d.concepto=$('#aCuando').value.trim().slice(0,80); d.kpi=$('#aKpi').value.trim().slice(0,80); }
@@ -813,6 +818,7 @@ $('#saveAll').addEventListener('click', async () => {
   if(!needDb()) return;
   const fn = {a_foto:addFoto, a_ishikawa:addCausaA, a_a3:addA3A, b_ishikawa:addCausaB, b_a3:addA3B, cierre:saveCierre}[S.view];
   const r = fn ? await fn() : null;
+  flushPanel(); scheduleRender();
   if(r===false) return;
   markSaved(); toast(r ? 'Cambios grabados' : 'No había nada nuevo para grabar en esta pestaña');
 });
@@ -829,13 +835,25 @@ function renderPanel(){
   keepFocus(()=>{ $('#main').innerHTML = `<div class="panel">${PANELS[S.view]()}${stepNav()}</div>`; });
   Object.entries(drafts).forEach(([id,v])=>{const el=document.getElementById(id); if(el && v && el!==document.activeElement) el.value=v});
 }
-let renderQueued=false;
-function scheduleRender(){ if(renderQueued) return; renderQueued=true; requestAnimationFrame(()=>{renderQueued=false; renderNav(); renderPanel();}); }
+let renderQueued=false, panelPending=false;
+const editing = () => { const a=document.activeElement; return !!(a && $('#main').contains(a) && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)); };
+function scheduleRender(){ if(renderQueued) return; renderQueued=true; requestAnimationFrame(()=>{renderQueued=false; renderNav();
+  if(editing()){ panelPending=true; return; } panelPending=false; renderPanel();}); }
+// Mientras alguien escribe o elige en un campo, el panel no se redibuja (no se cierra el teclado del celular ni la lista);
+// los aportes de los demás aparecen apenas sale del campo.
+function flushPanel(){ if(editing()) return; if(S.pendingView){ S.view=S.pendingView; S.pendingView=null; panelPending=true; } if(panelPending){ panelPending=false; renderNav(); renderPanel(); } }
+$('#main').addEventListener('focusout', () => setTimeout(flushPanel, 300));
 
+const busy=new Set();
 $('#main').addEventListener('click', async e => {
   const t = e.target.closest('button'); if(!t) return;
-  if(t.dataset.goto){ S.view=t.dataset.goto; renderNav(); renderPanel(); window.scrollTo({top:0, behavior:'smooth'}); return; }
+  if(t.dataset.goto){ S.view=t.dataset.goto; S.pendingView=null; panelPending=false; renderNav(); renderPanel(); window.scrollTo({top:0, behavior:'smooth'}); return; }
   if(!needDb()) return;
+  const key = t.id || t.dataset.vote || t.dataset.del || t.dataset.comp || 'x';
+  if(busy.has(key)) return; busy.add(key); t.disabled=true;   // evita doble clic sobre la misma acción
+  try{ await handleClick(t); } finally { busy.delete(key); t.disabled=false; if(!editing()) flushPanel(); scheduleRender(); }
+});
+async function handleClick(t){
   const say = (r, ok, none) => { if(r) toast(ok); else if(r===null) toast(none); };
   if(t.dataset.comp){ await safe(S.db.doc('respuestas_caso/'+S.pid).set({op:t.dataset.comp, otro:''}), 'Elección grabada'); }
   else if(t.id==='fAdd') say(await addFoto(),'Aporte agregado','Escribí tu respuesta antes de agregarla.');
@@ -847,7 +865,7 @@ $('#main').addEventListener('click', async e => {
   else if(t.dataset.del){ await safe(S.db.doc(t.dataset.del).delete(),'Borrado'); }
   else if(t.dataset.vote){ const id=t.dataset.vote, g=t.dataset.g; const ref=S.db.doc('votos/'+canon(S.pid+'_'+id));
     if(iVoted(id)) await safe(ref.delete()); else { if(myVotes(g).length>=MAXV[g]){ toast('Ya usaste tus votos de esta sección.'); return } await safe(ref.set({pid:S.pid, causa:id, g})); } }
-});
+}
 $('#main').addEventListener('keydown', e => { const map={fTxt:'#fAdd', cTxt:'#cAdd', bTxt:'#bAdd', aAcc:'#aAdd', bAcc:'#bAddA3'}; if(e.key==='Enter' && map[e.target.id]){ e.preventDefault(); $(map[e.target.id]).click(); } });
 
 // ---------- facilitador ----------
@@ -898,6 +916,9 @@ $('#topReset').addEventListener('click', () => {
 // ---------- inicio ----------
 renderNav(); renderPanel();
 function offline(msg){ $('#conn').textContent=msg; $('#conn').className='status off'; }
+function live(){ $('#conn').textContent='Tablero compartido en vivo'; $('#conn').className='status live'; }
+window.addEventListener('offline', () => { if(S.db) offline('Sin internet: lo que cargues se envía solo al volver la red.'); });
+window.addEventListener('online', () => { if(S.db) live(); });
 function showLogin(){
   if(S.canEdit || location.hash!=='#facilitador') return;
   $('#facilLogin').hidden=false;
@@ -916,16 +937,22 @@ function showLogin(){
     S.pid = cred.user.uid;
   }catch(e){ const c=(e&&e.code)||'sin código'; const hint = location.protocol==='file:' ? 'Abrí la página desde el link de GitHub, no como archivo.' : (c.includes('operation-not-allowed')||c.includes('admin-restricted') ? 'Activá “Anónimo” en Authentication y tocá Guardar.' : 'Revisá Authentication en Firebase.'); offline('No se pudo iniciar sesión anónima ('+c+'). '+hint); console.error(e); return; }
   const db = firebase.firestore();
-  S.db = db; $('#conn').textContent='Tablero compartido en vivo'; $('#conn').className='status live';
+  try{ db.settings({experimentalAutoDetectLongPolling:true}); }catch(e){}
+  S.db = db; live();
   try{ const f = await db.doc('facilitadores/'+S.pid).get(); if(f.exists) S.canEdit = true; }catch(e){}
   const lost = (e) => { console.error(e); offline('Se cortó la conexión. Recargá la página.'); };
   const sub = (col, key) => db.collection(col).onSnapshot(s => { S[key] = s.docs.map(d=>({id:d.id, ...d.data()})); scheduleRender(); }, lost);
   sub('respuestas_caso','resp'); sub('causas','causas'); sub('votos','votos'); sub('contramedidas','contra'); sub('cierre','cierre');
   let first = true;
-  db.doc('estado/sesion').onSnapshot(s => { const d = s.exists ? s.data() : {}; const prev=S.fase;
+  db.doc('estado/sesion').onSnapshot({includeMetadataChanges:true}, s => {
+    if(s.metadata && s.metadata.fromCache && !navigator.onLine) offline('Sin internet: lo que cargues se envía solo al volver la red.');
+    else if(s.metadata && !s.metadata.fromCache) live();
+    const d = s.exists ? s.data() : {}; const prev=S.fase;
     S.fase = PHASES.some(p=>p.id===d.fase) ? d.fase : 'filosofia'; S.desafioA = DESAFIOS.some(x=>x.id===d.desafioA) ? d.desafioA : 'retencion';
-    if(first || prev!==S.fase){ if(!S.canEdit || first) S.view = S.fase; first=false; }
-    if(S.canEdit){ $('#fFase').value = S.fase; $('#fDesafio').value = S.desafioA; } scheduleRender(); }, lost);
+    if(first || prev!==S.fase){ if(!S.canEdit || first){ if(!first && editing()) S.pendingView = S.fase; else S.view = S.fase; } first=false; }
+    const changed = prev!==S.fase || S._lastDes!==S.desafioA; S._lastDes=S.desafioA;
+    if(S.canEdit && changed && facilReady){ const ff=$('#fFase'), fd=$('#fDesafio'); if(document.activeElement!==ff) ff.value = S.fase; if(document.activeElement!==fd) fd.value = S.desafioA; }
+    scheduleRender(); }, lost);
   if(S.canEdit) setupFacil(); else showLogin();
   window.addEventListener('hashchange', showLogin);
   scheduleRender();
